@@ -16,11 +16,11 @@ module FIFO (
 
    // write section
    input  wire WrEnable,           // write-enable
-   input  wire [7:0] WrData,       // input data
+   input  wire [9:0] WrData,       // input data 10 bit
 
    // read section
    input  wire RdEnable,           // read-enable
-   output wire [7:0] RdData,       // output data
+   output wire [9:0] RdData,       // output data 10 bit
 
    // diagnostics
    output wire Full, Empty         // status flags
@@ -38,10 +38,10 @@ module FIFO (
 
       .clk    (        Clock ),
       .srst   (        Reset ),
-      .din    (  WrData[7:0] ),
+      .din    (  WrData[9:0] ),
       .wr_en  (     WrEnable ),
       .rd_en  (     RdEnable ),
-      .dout   (  RdData[7:0] ),
+      .dout   (  RdData[9:0] ),
       .full   (         Full ),
       .empty  (        Empty )
 
