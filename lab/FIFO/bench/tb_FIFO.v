@@ -11,7 +11,7 @@
 //
 
 
-`define FIFO_WIDTH   8   // useless in this testbench, just to remind us that if needed we can also use macros in Verilog ...
+`define FIFO_WIDTH  10   // useless in this testbench, just to remind us that if needed we can also use macros in Verilog ...
 `define FIFO_DEPTH  32
 
 
@@ -39,8 +39,8 @@ module tb_FIFO ;
    reg wr_enable = 1'b0 ;
    reg rd_enable = 1'b0 ;
 
-   reg  [7:0] wr_data = 8'h00 ;
-   wire [7:0] rd_data ;
+   reg  [9:0] wr_data = 10'h000 ;
+   wire [9:0] rd_data ;
 
    wire empty, full ;
 
@@ -52,11 +52,11 @@ module tb_FIFO ;
 
       // write section
       .WrEnable  (    wr_enable ),
-      .WrData    ( wr_data[7:0] ),
+      .WrData    ( wr_data[9:0] ),
 
       // read section
       .RdEnable  (    rd_enable ),
-      .RdData    ( rd_data[7:0] ),
+      .RdData    ( rd_data[9:0] ),
 
       // diagnostics
       .Full      (         full ),
@@ -89,15 +89,16 @@ module tb_FIFO ;
 
    initial begin
 
-      #400   // wait for reset to be released
+      #400  // wait for reset to be released
 
-      for (wr = 0; wr < 100; wr = wr+1) begin
+      for (wr = 0; wr < 1024; wr = wr+1) begin
 
-         #100 wr_data[7:0] = $random ;   // **REMIND: $random returns a 32-bit random integer, here we cast the 8 left-most bits to wr_data
+         #2300 wr_data[9:0] = $random ;   // **REMIND: $random returns a 32-bit random integer, here we cast the 8 left-most bits to wr_data
 
+  
          @(posedge clk100) wr_enable = 1'b1 ;    // "dirty" way to generate a single clock-pulse control signal
          @(posedge clk100) wr_enable = 1'b0 ;
-
+ 
       end   // for
    end   // initial
 
@@ -111,11 +112,11 @@ module tb_FIFO ;
 
       #400   // wait for reset to be released
 
-      #400   // start reading only after 800ns
+      #2300   // start reading only after 800ns
 
-      for( rd = 0; rd < 32; rd = rd+1) begin
+      for( rd = 0; rd < 1024; rd = rd+1) begin
 
-         #100
+         #4000
 
          @(posedge clk100) rd_enable = 1'b1 ;    // "dirty" way to generate a single clock-pulse control signal
          @(posedge clk100) rd_enable = 1'b0 ;
@@ -123,17 +124,17 @@ module tb_FIFO ;
       end   // for
 
 
-      #4000   // stop reading for 4us, meanwhile the FIFO goes FULL !
+      // #4000   // stop reading for 4us, meanwhile the FIFO goes FULL !
 
-      for (rd = 0; rd < 70; rd = rd+1) begin
+      // for (rd = 0; rd < 70; rd = rd+1) begin
 
-         #100
+         // #100
 
-         @(posedge clk100) rd_enable = 1'b1 ;
-         @(posedge clk100) rd_enable = 1'b0 ;
-      end
+         // @(posedge clk100) rd_enable = 1'b1 ;
+         // @(posedge clk100) rd_enable = 1'b0 ;
+      // end
 
-      #1000 $finish ;
+      #8000 $finish ;
 
    end   // initial
 

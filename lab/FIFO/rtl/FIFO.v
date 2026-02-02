@@ -16,11 +16,11 @@ module FIFO (
 
    // write section
    input  wire WrEnable,           // write-enable
-   input  wire [9:0] WrData,       // input data 10 bit
+   input  wire [9:0] WrData,       // input data
 
    // read section
    input  wire RdEnable,           // read-enable
-   output wire [9:0] RdData,       // output data 10 bit
+   output wire [9:0] RdData,       // output data
 
    // diagnostics
    output wire Full, Empty         // status flags
@@ -34,7 +34,7 @@ module FIFO (
 
    // **NOTE: the actual FIFO implementation is placed in ../cores/FIFO_WIDTH8_DEPTH32/FIFO_WIDTH8_DEPTH32_sim_netlist.v
 
-   FIFO_WIDTH8_DEPTH32   FIFO_WIDTH8_DEPTH32_inst (
+   FIFO_WIDTH10_DEPTH32   FIFO_WIDTH10_DEPTH32_inst (
 
       .clk    (        Clock ),
       .srst   (        Reset ),

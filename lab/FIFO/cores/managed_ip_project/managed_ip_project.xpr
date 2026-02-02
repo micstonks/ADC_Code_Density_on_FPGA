@@ -6,7 +6,7 @@
 <Project Version="7" Minor="61" Path="C:/Users/MariaCristina/Desktop/ADC_Code_Density_on_FPGA/lab/FIFO/cores/managed_ip_project/managed_ip_project.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
-    <Option Name="Id" Val="d8e67a8ad90345548481291a0d22d9c2"/>
+    <Option Name="Id" Val="8d04e0b30a764654aafede3627255e2c"/>
     <Option Name="Part" Val="xc7a35ticsg324-1L"/>
     <Option Name="CompiledLibDir" Val="$PCACHEDIR/compile_simlib"/>
     <Option Name="CompiledLibDirXSim" Val=""/>
@@ -121,8 +121,8 @@
         <Option Name="TopAutoSet" Val="TRUE"/>
       </Config>
     </FileSet>
-    <FileSet Name="fifo_generator_FIFO_WIDTH10_DEPTH32" Type="BlockSrcs" RelSrcDir="$PSRCDIR/fifo_generator_FIFO_WIDTH10_DEPTH32" RelGenDir="$PGENDIR/fifo_generator_FIFO_WIDTH10_DEPTH32">
-      <File Path="$PPRDIR/../fifo_generator_FIFO_WIDTH10_DEPTH32/fifo_generator_FIFO_WIDTH10_DEPTH32.xci">
+    <FileSet Name="FIFO_WIDTH10_DEPTH32" Type="BlockSrcs" RelSrcDir="$PSRCDIR/FIFO_WIDTH10_DEPTH32" RelGenDir="$PGENDIR/FIFO_WIDTH10_DEPTH32">
+      <File Path="$PPRDIR/../FIFO_WIDTH10_DEPTH32/FIFO_WIDTH10_DEPTH32.xci">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -130,7 +130,7 @@
         </FileInfo>
       </File>
       <Config>
-        <Option Name="TopModule" Val="fifo_generator_FIFO_WIDTH10_DEPTH32"/>
+        <Option Name="TopModule" Val="FIFO_WIDTH10_DEPTH32"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -165,7 +165,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="fifo_generator_FIFO_WIDTH10_DEPTH32_synth_1" Type="Ft3:Synth" SrcSet="fifo_generator_FIFO_WIDTH10_DEPTH32" Part="xc7a35ticsg324-1L" ConstrsSet="fifo_generator_FIFO_WIDTH10_DEPTH32" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/fifo_generator_FIFO_WIDTH10_DEPTH32_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/fifo_generator_FIFO_WIDTH10_DEPTH32_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/fifo_generator_FIFO_WIDTH10_DEPTH32_synth_1">
+    <Run Id="FIFO_WIDTH10_DEPTH32_synth_1" Type="Ft3:Synth" SrcSet="FIFO_WIDTH10_DEPTH32" Part="xc7a35ticsg324-1L" ConstrsSet="FIFO_WIDTH10_DEPTH32" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/FIFO_WIDTH10_DEPTH32_synth_1" IncludeInArchive="true" IsChild="false" AutoIncrementalDir="$PSRCDIR/utils_1/imports/FIFO_WIDTH10_DEPTH32_synth_1" AutoRQSDir="$PSRCDIR/utils_1/imports/FIFO_WIDTH10_DEPTH32_synth_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2022">
           <Desc>Vivado Synthesis Defaults</Desc>
@@ -196,7 +196,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="fifo_generator_FIFO_WIDTH10_DEPTH32_impl_1" Type="Ft2:EntireDesign" Part="xc7a35ticsg324-1L" ConstrsSet="fifo_generator_FIFO_WIDTH10_DEPTH32" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="fifo_generator_FIFO_WIDTH10_DEPTH32_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/fifo_generator_FIFO_WIDTH10_DEPTH32_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/fifo_generator_FIFO_WIDTH10_DEPTH32_impl_1">
+    <Run Id="FIFO_WIDTH10_DEPTH32_impl_1" Type="Ft2:EntireDesign" Part="xc7a35ticsg324-1L" ConstrsSet="FIFO_WIDTH10_DEPTH32" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="FIFO_WIDTH10_DEPTH32_synth_1" IncludeInArchive="false" IsChild="false" GenFullBitstream="true" AutoIncrementalDir="$PSRCDIR/utils_1/imports/FIFO_WIDTH10_DEPTH32_impl_1" AutoRQSDir="$PSRCDIR/utils_1/imports/FIFO_WIDTH10_DEPTH32_impl_1">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2022">
           <Desc>Default settings for Implementation.</Desc>
