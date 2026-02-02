@@ -9,6 +9,10 @@
 ## Gedit/Nedit temporary files
 *~
 
+##Powerpoint files!!
+*.pptx 
+
+
 ## log files
 *.log
 log*
