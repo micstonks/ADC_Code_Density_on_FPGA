@@ -1,12 +1,12 @@
 // Implementation of SPI receiving unit 
 
-`timescale 1ns / 100ps
+`timescale 1ns / 1ns
 
-module   SPI_Master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH = 10) (   //this SPI module talks with WIDTH-bit words
+module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH = 10) (   //this SPI module talks with WIDTH-bit words
    
    
-   input    wire   rst,       // to map on FPGA Reset
    input    wire   clk,       // FPGA 100 MHz Clock
+   input    wire   rst,       // to map on FPGA Reset
    input    wire   MISO,
    //input    wire  start,
    
@@ -24,9 +24,9 @@ module   SPI_Master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    ///////////////////////////////////////
 
    // PLL signals
-   wire pll_clk, pll_locked, UNCONNECTED ;
+   wire pll_clk, pll_locked;
 
-   PLL  PLL_inst ( .CLK_IN(clk), .CLK_OUT_100(pll_clk), .CLK_OUT_200(UNCONNECTED), .LOCKED(pll_locked) ) ;      // 100 MHz output clock
+   PLL  PLL_inst ( .CLK_IN(clk), .CLK_OUT_100(pll_clk), .LOCKED(pll_locked) ) ;      // 100 MHz output clock
    //PLL  PLL_inst ( .CLK_IN(clk), .CLK_OUT_100(UNCONNECTED), .CLK_OUT_200(pll_clk), .LOCKED(pll_locked) ) ;    // 200 MHz output clock
 
 
@@ -44,7 +44,7 @@ module   SPI_Master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    //////////////////////////////////////////
    wire spi_tick;
    
-   TickCounter #( .MAX(5) ) TickCounter_inst2 ( .clk(pll_clk), .tick(spi_tick) );   //1 tick with 20MHz frequency, 1 tick each 50 ns
+   TickCounter #( .MAX(3) ) TickCounter_inst2 ( .clk(pll_clk), .tick(spi_tick) );   //1 tick with 33.3 MHz frequency, 1 tick each 30 ns ===> fsclk = 16 MHz < 20 MHz!
 
    //////////////////////////////////////////////////////////
    //           SPI_MODE, can be 0, 1, 2, or 3.            //
@@ -91,8 +91,8 @@ module   SPI_Master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    wire sampling_en;
    assign sampling_en = (w_CPHA) ? (~r_sclk) : (r_sclk);
    
-   wire bit_done;
-   assign bit_done = (bit_cnt == 0);
+   reg bit_done;
+  
 
 
    /////////////////////////////////////////////////
@@ -113,9 +113,9 @@ module   SPI_Master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    //   combinational part   //
    ////////////////////////////
    
-   always @(*) begin   //!!WARNING!! port list includes all signals!!
+   always @(*) begin  
       
-	  //Default assignment
+	  //Default assignment: 
       STATE_NEXT = STATE;
 	  
 	  busy = 1'b0;
@@ -156,9 +156,6 @@ module   SPI_Master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
 			
 			   STATE_NEXT = SPI_TRANSFER;
 			   
-			else 
-			
-			   STATE_NEXT = WAIT_SCLK;
 			   
 		 end   //WAIT_SCLK
 			
@@ -210,8 +207,17 @@ module   SPI_Master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
 		 
             ADC_Data <= {ADC_Data[WIDTH-2:0], MISO};
             bit_cnt <= bit_cnt - 1'b1;
+			
+			if (bit_cnt == 0)
+		       bit_done = 1'b1;
+			else 
+			   bit_done = 1'b0;
          
 		 end
+		 
+		 
+			
+	     
 		 
       end
 	  
@@ -224,7 +230,7 @@ module   SPI_Master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
 	  
    end
    
-   always @(posedge pll_clk) begin
+   always @(posedge pll_clk) begin   //in this way sclk comes is a 10 ns delayed copy of r_sclk. is it needed? can i directly send r_sclk to ADC?
       
 	  if (rst | (~pll_locked))
          sclk <= w_CPOL;
@@ -235,137 +241,4 @@ module   SPI_Master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
 endmodule 
 
 			
-
-   // reg   start_spi;     
-   // reg   r_sclk;
-   // reg   [$clog2(WIDTH*2)-1:0] r_sclk_edges;
-   // reg   r_leading_edge;
-   // reg   r_trailing_edge;
-   // reg   [$clog2(WIDTH)-1:0] r_RX_Bit_Count;
-
-
-   // // Purpose: Generate SPI Clock sclk for WIDTH bits when start is asserted 
-   // always @(posedge pll_clk) begin
-     
-      // if ( rst | (~pll_locked) ) begin   //force SPI in known IDLE state
-	 
-         // busy      <= 1'b1;   //no transaction allowed
-         // r_sclk_edges <= {($clog2(WIDTH*2)){1'b0}};   //number of remaining clock edges = no SPI transaction in progress
-         // r_leading_edge  <= 1'b0;  //no clock edge detected during reset
-         // r_trailing_edge <= 1'b0;
-         // r_sclk       <= w_CPOL; // assign default state to idle state
-	  
-      // end   //if
-	
-      // else begin   //rst = 1'b0
-
-         // // Default assignments
-         // r_leading_edge  <= 1'b0;
-         // r_trailing_edge <= 1'b0;
-		 // busy      <= ( ~(r_sclk_edges == 0) );
-		
-		 // if (spi_tick) begin
-	  
-		    // if (start) begin   //start a new SPI transfer
-	          
-			   // busy      <= 1'b1;   //SPI is now busy => prevents new transaction to start
-		       // r_sclk_edges <= WIDTH*2;  // Total # edges in one WIDTH-bit word. !!WARNING!!Be aware of type-casting!!
-		       // r_sclk       <= w_CPOL;
-		   
-		    // end   //if
-		 
-		    // else if (r_sclk_edges > 0) begin   //mid-transaction and still clock edges to generate
-		 
-	           // r_sclk <= ~r_sclk;
-			   // r_sclk_edges <= r_sclk_edges - 1'b1;   //one SPI edge occurred so decrement edge count
-			  
-			   // // detect which edge we just generated
-               // if (r_sclk == w_CPOL)
-			  
-                  // r_leading_edge <= 1'b1;
-				 
-               // else
-			  
-                  // r_trailing_edge <= 1'b1;
-				 
-		    // end   //else if r_sclk_edges > 0
-			
-		   
-		 // end   //spi_tick
-             
-      // end // else: !if(~i_Rst_L)
-	 
-   // end // always @ (posedge clk)
-
-
-
-
-   // // Purpose: Read WIDTH-bit MISO data.
-   // always @(posedge pll_clk) begin
-      
-      // if ( rst | (~pll_locked) ) begin
-	     
-         // ADC_Data      <= {WIDTH{1'b0}};
-         // D_en        <= 1'b0;
-         // r_RX_Bit_Count <= 10;   //!!WARNING!! Be aware of type casting
-	  
-      // end   // if rst
-   
-      // else begin   //rst = 0
-
-         // // Default Assignments
-         // D_en   <= 1'b0;
-
-         // // Reset bit counter when SPI is idle
-		 // if (busy) begin // Check if ready is high, if so reset bit count to default
-		 
-            // r_RX_Bit_Count <= 10;   //!!WARNING!! Be aware of type casting
-			
-         // end   //if busy
-		 
-         // // Sample MISO on correct SPI edge
-		 // else if ((r_leading_edge & ~w_CPHA) | (r_trailing_edge & w_CPHA)) begin
-		 
-		    // ADC_Data[r_RX_Bit_Count] <= MISO;  // Sample data
-        
-            // if ( r_RX_Bit_Count == 'b0 ) begin
-		   
-		       // D_en   <= 1'b1;   // Full word received, pulse Data Valid
-
-		    // end   //if r_RX_Bit_Count == ($clog(WIDTH)-1)'b0
-			
-			// else begin
-			
-			   // r_RX_Bit_Count <= r_RX_Bit_Count - 1'b1;
-			
-			// end   //else 
-			
-         // end   //else if r_leading_edge & ~w_CPHA) | (r_trailing_edge & w_CPHA)
-		 
-      // end   //else rst = 0
-	  
-   // end   //always
-  
-
-
- 
-   // // Purpose: Add clock delay to signals for alignment.
-   // always @(posedge pll_clk) begin
-     
-      // if ( rst | (~pll_locked) ) begin
-	    
-         // sclk  <= w_CPOL;
-	
-      // end   //if 
-	  
-      // else begin
-	  
-         // sclk <= r_sclk;
-		 
-      // end // else: not rst
-	  
-   // end // always
-  
-
-// endmodule // SPI_Master
 

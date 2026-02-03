@@ -74,13 +74,11 @@ LOG_DIR  := log
 ##########################################
 
 ## specify top-level RTL (this is used for implementation and firmware installation)
-#RTL_TOP_MODULE := SequenceDetector
 #RTL_TOP_MODULE := uart_tx_FSM
 RTL_TOP_MODULE := SPI_master
 
 
 ## specify top-level testbench module (this is the target module for the xelab executable)
-#SIM_TOP_MODULE := tb_SequenceDetector
 #SIM_TOP_MODULE := tb_uart_tx_FSM
 SIM_TOP_MODULE := tb_SPI_master
 
@@ -98,15 +96,12 @@ SIM_TOP_MODULE := tb_SPI_master
 ## specify RTL sources by hand (more in general can be Verilog + VHDL code)
 ##
 
-#RTL_VLOG_SOURCES := $(RTL_DIR)/SequenceDetector.v
 #RTL_VLOG_SOURCES := $(RTL_DIR)/uart_tx_FSM.v $(RTL_DIR)/TickCounter.v $(RTL_DIR)/BaudGen.v
-RTL_VLOG_SOURCES := $(RTL_DIR)/SPI_master.v $(RTL_DIR)/TickCounter.v 
+RTL_VLOG_SOURCES := $(RTL_DIR)/SPI_master.v $(RTL_DIR)/TickCounter.v
 
-SIM_VLOG_SOURCES := $(SIM_DIR)/glbl.v $(SIM_DIR)/ClockGen.v
-
-#SIM_VLOG_SOURCES += $(SIM_DIR)/tb_SequenceDetector.v
+SIM_VLOG_SOURCES := $(SIM_DIR)/glbl.v $(SIM_DIR)/ClockGen.v $(SIM_DIR)/tb_SPI_master.v
 #SIM_VLOG_SOURCES += $(SIM_DIR)/tb_uart_tx_FSM.v
-SIM_VLOG_SOURCES += $(SIM_DIR)/tb_SPI_master.v
+
 
 
 ## if no VHDL sources, you can either comment the below variables or just leave them empty
