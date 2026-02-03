@@ -6,8 +6,7 @@
 // pauses the simulation. To continue the simulation until the end issuing "run all"
 // in the XSim Tcl console.
 //
-// Luca Pacher - pacher@to.infn.it
-// Spring 2020
+// Conti - Ragusa
 //
 
 
