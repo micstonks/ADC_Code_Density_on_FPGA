@@ -1,8 +1,8 @@
 //
 // A simple Verilog "wrapper" for the automatically-generated FIFO IP core.
 //
-// Luca Pacher - pacher@to.infn.it
-// Spring 2020
+// Conti - Ragusa 
+// 
 //
 
 
