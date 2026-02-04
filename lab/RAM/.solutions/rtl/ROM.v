@@ -35,7 +35,11 @@ module ROM #(parameter integer WIDTH = 8, parameter integer DEPTH = 1024) (
    //   ROM declaration   //
    /////////////////////////
 
-   (* rom_style = "distributed" *)              // this is a first example of a SYNTHESIS PRAGMA, instruct the tool how to infer the ROM memory with LUTs or BRAMs
+   (* ram_style = "block" *)              // this is a first example of a SYNTHESIS PRAGMA, instruct the tool how to infer the RAM memory with BRAM type components
+   //(* ram_style = "distributed" *)      //Instructs the tool to infer the LUT RAMs.
+   //(* ram_style = "registers" *)        //Instructs the tool to infer registers instead of RAMs.
+   //(* ram_style = "mixed" *)            //Instructs the tool to infer a combination of RAM types designed to minimize the amount of space that is unused.
+   
    reg [WIDTH-1:0] mem [0:DEPTH-1] ;
 
 
