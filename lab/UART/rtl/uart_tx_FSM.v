@@ -3,13 +3,13 @@
 // The block only transmits one BYTE and it is foreseen to be interfaced with a FIFO.
 //
 // Luca Pacher - pacher@to.infn.it
-// Fall 2020
+// Update -> Conti-Ragusa
 //
 //
-//   __________________       _____ _____ _____ _____ _____ _____ _____ _____ _____ ___________
-//                     \_____/_____X_____X_____X_____X_____X_____X_____X_____X     :
+//   __________________       _____ _____ _____ _____ _____ _____ _____ _____ _____ _____ ______
+//                     \_____/_____X_____X_____X_____X_____X_____X_____X_____X_____X_____X     :
 //
-//         IDLE        START  BIT0  BIT1  BIT2  BIT3  BIT4  BIT5  BIT6  BIT7  STOP  IDLE
+//         IDLE        START  BIT0  BIT1  BIT2  BIT3  BIT4  BIT5  BIT6  BIT7  BIT8   BIT9 STOP  IDLE
 //
 //
 
@@ -22,10 +22,11 @@ module uart_tx_FSM (
    input  wire rst,                     // synchronous reset, active high
    input  wire tx_start,                // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
    input  wire tx_en,                   // baud-rate "tick", single clock-pulse asserted once every 1/(9.6 kHz)
-   input  wire [7:0] tx_data,           // byte to be transmitted over the serial lane
+   input  wire [9:0] tx_data,           // byte to be transmitted over the serial lane
    //output reg  tx_busy,
    //output reg  tx_done,
-   output reg  TxD                      // serial output stream
+   output reg  TxD,                      // serial output stream
+   output reg  par                       //parity output
 
    ) ;
 
@@ -35,29 +36,23 @@ module uart_tx_FSM (
    ///////////////////////////
 
    // simply assume a straight-binary states encoding and count from 0 to 12
-   parameter [3:0] IDLE  = 4'h0 ;
-   parameter [3:0] LOAD  = 4'h1 ;
-   parameter [3:0] START = 4'h2 ;
-   parameter [3:0] BIT0  = 4'h3 ;
-   parameter [3:0] BIT1  = 4'h4 ;
-   parameter [3:0] BIT2  = 4'h5 ;
-   parameter [3:0] BIT3  = 4'h6 ;
-   parameter [3:0] BIT4  = 4'h7 ;
-   parameter [3:0] BIT5  = 4'h8 ;
-   parameter [3:0] BIT6  = 4'h9 ;
-   parameter [3:0] BIT7  = 4'hA ;
-   parameter [3:0] STOP  = 4'hB ;
-   parameter [3:0] PAUSE = 4'hC ;   // optionally wait for another baud period before moving to IDLE
+   parameter [6:0] IDLE  = 3'h0 ;
+   parameter [6:0] LOAD  = 3'h1 ;
+   parameter [6:0] START = 3'h2 ;
+   parameter [6:0] SEND  = 3'h3 ;
+   parameter [6:0] PARITY= 3'h4 ;
+   parameter [6:0] STOP  = 3'h5 ;  
+   parameter [6:0] PAUSE = 3'h6 ;   // optionally wait for another baud period before moving to IDLE
 
-   reg [3:0] STATE, STATE_NEXT ;
+   reg [2:0] STATE, STATE_NEXT ;
 
 
    ///////////////////////
    //   input buffers   //
    ///////////////////////
 
-   reg [7:0] tx_data_buf ;   // **WARN: in hardware this becomes a bank of LATCHES !
-
+   reg [9:0] tx_data_buf ;   // **WARN: in hardware this becomes a bank of LATCHES !
+   reg [3:0] count, count_next ;
 
    /////////////////////////////////////////////////
    //   next-state logic (pure sequential part)   //
@@ -65,12 +60,14 @@ module uart_tx_FSM (
 
    always @(posedge clk) begin      // infer a bank of FlipFlops
 
-      if(rst)
+      if(rst)begin
          STATE <= IDLE ;
-
-      else
-         STATE <= STATE_NEXT ;
-
+		 count <= 4'b0;
+		 count_next <= 4'b0;
+		 end
+      else 
+         STATE <= STATE_NEXT ;		 
+	     count <= count_next;
    end   // always
 
 
@@ -81,7 +78,8 @@ module uart_tx_FSM (
    always @(*) begin
 
       TxD = 1'b1 ;   // latches inferred otherwise
-
+      
+	  
       case( STATE )
 
          IDLE : begin
@@ -106,7 +104,7 @@ module uart_tx_FSM (
             //tx_busy = 1'b1 ;
             //tx_done = 1'b0 ;
 
-            tx_data_buf[7:0] = tx_data[7:0] ;   // LATCHES here !
+            tx_data_buf[9:0] = tx_data[9:0] ;   // LATCHES here !
 
             if (tx_en)                    // **IMPORTANT: move to next state only if a baud "tick" is present !
                STATE_NEXT = START ;
@@ -124,132 +122,46 @@ module uart_tx_FSM (
             //tx_done = 1'b0 ;
 
             if (tx_en)
-               STATE_NEXT = BIT0 ;
+               STATE_NEXT = SEND ;
             else
                STATE_NEXT = START ;
 
          end   // START
-         //_____________________________
+     
+         //_________________________
+         SEND: begin
+		   
+             TxD = tx_data_buf[9-count];
 
+            if (tx_en) begin
+              if (count >= 4'b1001) begin
+                count_next = 4'b0000;       //force the count roll-over
+                STATE_NEXT = PARITY;
+              end//if
+            else begin
+                count_next = count + 4'b1; 
+                STATE_NEXT = SEND;         // stay in SEND
+            end//else
+           end//if
+            else begin
+             count_next = count;
+             STATE_NEXT = SEND;
+             end//else
+          end//SEND
+		  
+		  //_____________________________
 
-         BIT0 : begin
-
-            TxD     = tx_data_buf[0] ;    // send the LSB first as requested by RS-232 protocol
-            //tx_busy = 1'b1 ;
-            //tx_done = 1'b0 ;
-
-            if (tx_en)
-               STATE_NEXT = BIT1 ;
-            else
-               STATE_NEXT = BIT0 ;
-
-         end   // BIT0
-         //_____________________________
-
-
-         BIT1 : begin
-
-            TxD     = tx_data_buf[1] ;
-            //tx_busy = 1'b1 ;
-            //tx_done = 1'b0 ;
-
-            if (tx_en)
-               STATE_NEXT = BIT2 ;
-            else
-               STATE_NEXT = BIT1 ;
-
-         end   // BIT1
-         //_____________________________
-
-
-         BIT2 : begin
-
-            TxD     = tx_data_buf[2] ;
-            //tx_busy = 1'b1 ;
-            //tx_done = 1'b0 ;
-
-            if (tx_en)
-               STATE_NEXT = BIT3 ;
-            else
-               STATE_NEXT = BIT2 ;
-
-         end   // BIT2
-         //_____________________________
-
-
-         BIT3 : begin
-
-            TxD     = tx_data_buf[3] ;
-            //tx_busy = 1'b1 ;
-            //tx_done = 1'b0 ;
-
-            if (tx_en)
-               STATE_NEXT = BIT4 ;
-            else
-               STATE_NEXT = BIT3 ;
-
-         end   // BIT3
-         //_____________________________
-
-
-         BIT4 : begin
-
-            TxD     = tx_data_buf[4] ;
-            //tx_busy = 1'b1 ;
-            //tx_done = 1'b0 ;
-
-            if (tx_en)
-               STATE_NEXT = BIT5 ;
-            else
-               STATE_NEXT = BIT4 ;
-         end   // BIT4
-         //_____________________________
-
-
-         BIT5 : begin
-
-            TxD     = tx_data_buf[5] ;
-            //tx_busy = 1'b1 ;
-            //tx_done = 1'b0 ;
-
-            if (tx_en)
-               STATE_NEXT = BIT6 ;
-            else
-               STATE_NEXT = BIT5 ;
-
-         end   // BIT5
-         //_____________________________
-
-
-         BIT6 : begin
-
-            TxD     = tx_data_buf[6] ;
-            //tx_busy = 1'b1 ;
-            //tx_done = 1'b0 ;
-
-            if (tx_en)
-               STATE_NEXT = BIT7 ;
-            else
-               STATE_NEXT = BIT6 ;
-
-         end   // BIT6
-         //_____________________________
-
-
-         BIT7 : begin
-
-            TxD     = tx_data_buf[7] ;
-            //tx_busy = 1'b1 ;
-            //tx_done = 1'b0 ;
+         PARITY : begin
+             par = ^tx_data_buf;
+             TxD = par ;            // assert STOP bit to '1' as requested by RS-232 protocol
 
             if (tx_en)
                STATE_NEXT = STOP ;
             else
-               STATE_NEXT = BIT7 ;
-         end   // BIT7
+               STATE_NEXT = PARITY ;
+
+         end   // PARITY
          //_____________________________
-
-
          STOP : begin
 
             TxD     = 1'b1 ;            // assert STOP bit to '1' as requested by RS-232 protocol

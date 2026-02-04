@@ -1,0 +1,15 @@
+#-----------------------------------------------------------
+# xsim v2022.2 (64-bit)
+# SW Build 3671981 on Fri Oct 14 05:00:03 MDT 2022
+# IP Build 3669848 on Fri Oct 14 08:30:02 MDT 2022
+# Start of session at: Wed Feb  4 10:47:57 2026
+# Process ID: 768
+# Current directory: D:/ADC_Code_Density_on_FPGA/lab/UART/work/sim
+# Command line: xsim.exe -log D:/ADC_Code_Density_on_FPGA/lab/UART/work/sim/../../log/simulate.log -source {xsim.dir/tb_uart_tx_FSM/xsim_script.tcl}
+# Log file: D:/ADC_Code_Density_on_FPGA/lab/UART/work/sim/../../log/simulate.log
+# Journal file: D:/ADC_Code_Density_on_FPGA/lab/UART/work/sim\xsim.jou
+# Running On: LAPTOP-O7E912V4, OS: Windows, CPU Frequency: 2304 MHz, CPU Physical cores: 4, Host memory: 8458 MB
+#-----------------------------------------------------------
+start_gui
+source xsim.dir/tb_uart_tx_FSM/xsim_script.tcl
+source D:/ADC_Code_Density_on_FPGA/lab/UART/work/sim/../../scripts/sim/run.tcl

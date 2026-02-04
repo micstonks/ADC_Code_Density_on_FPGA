@@ -14,7 +14,7 @@
 ##   % make build install [board=Arty|ArtyA7]
 ##
 ## Luca Pacher - pacher@to.infn.it
-## Fall 2020
+## Update -> Conti-Ragusa 2026
 ##
 
 
@@ -22,15 +22,6 @@
 ##   preamble (reserved variables)   ##
 #######################################
 
-##
-## **IMPORTANT
-##
-## This is a fully UNIX-compliant Makefile that can run on both Linux and Windows systems.
-## On Windows, please ensure that all required Linux executables are available in the search
-## path from the Command Prompt. Required executables are:
-##
-## make.exe bash.exe mkdir.exe echo.exe rm.exe tclsh.exe
-##
 
 ## 'make' extra flags
 MAKEFLAGS += --warn-undefined-variables --debug
@@ -74,71 +65,23 @@ LOG_DIR  := log
 ##########################################
 
 ## specify top-level RTL (this is used for implementation and firmware installation)
-RTL_TOP_MODULE := SequenceDetector
-#RTL_TOP_MODULE := uart_tx_FSM
-
-
+RTL_TOP_MODULE := uart_tx_FSM
 ## specify top-level testbench module (this is the target module for the xelab executable)
-SIM_TOP_MODULE := tb_SequenceDetector
-#SIM_TOP_MODULE := tb_uart_tx_FSM
-
-
-##
-## **NOTE
-##
-## The Xilinx XSim simulator allows to simulate mixed-language designs (Verilog + VHDL)
-## without the need of a commercial license (the free-version of other simulators such
-## as ModelSim by Mentor allows to simulate Verilog-only or VHDL-only designs instead).
-##
-
+SIM_TOP_MODULE := tb_uart_tx_FSM
 
 ##
 ## specify RTL sources by hand (more in general can be Verilog + VHDL code)
 ##
 
-RTL_VLOG_SOURCES := $(RTL_DIR)/SequenceDetector.v
-#RTL_VLOG_SOURCES := $(RTL_DIR)/uart_tx_FSM.v $(RTL_DIR)/TickCounter.v $(RTL_DIR)/BaudGen.v
-
+RTL_VLOG_SOURCES := $(RTL_DIR)/uart_tx_FSM.v $(RTL_DIR)/TickCounter.v $(RTL_DIR)/BaudGen.v
 SIM_VLOG_SOURCES := $(SIM_DIR)/glbl.v $(SIM_DIR)/ClockGen.v
-
-SIM_VLOG_SOURCES += $(SIM_DIR)/tb_SequenceDetector.v
-#SIM_VLOG_SOURCES += $(SIM_DIR)/tb_uart_tx_FSM.v
+SIM_VLOG_SOURCES += $(SIM_DIR)/tb_uart_tx_FSM.v
 
 
 ## if no VHDL sources, you can either comment the below variables or just leave them empty
 RTL_VHDL_SOURCES :=
 SIM_VHDL_SOURCES :=
 
-
-##
-## or automatically find all *.(s)v and *.vhd source files
-##
-
-#
-#ifneq ($(wildcard $(RTL_DIR)/*.v ),)
-#   RTL_VLOG_SOURCES += $(wildcard $(RTL_DIR)/*.v )
-#endif
-#
-#ifneq ($(wildcard $(RTL_DIR)/*.sv ),)
-#   RTL_VLOG_SOURCES += $(wildcard $(RTL_DIR)/*.sv )
-#endif
-#
-#ifneq ($(wildcard $(RTL_DIR)/*.vhd ),)
-#   RTL_VHDL_SOURCES += $(wildcard $(RTL_DIR)/*.vhd )
-#endif
-#
-#ifneq ($(wildcard $(SIM_DIR)/*.v ),)
-#   SIM_VLOG_SOURCES += $(wildcard $(SIM_DIR)/*.v )
-#endif
-#
-#ifneq ($(wildcard $(SIM_DIR)/*.sv ),)
-#   SIM_VLOG_SOURCES += $(wildcard $(SIM_DIR)/*.sv )
-#endif
-#
-#ifneq ($(wildcard $(SIM_DIR)/*.vhd ),)
-#   SIM_VHDL_SOURCES += $(wildcard $(SIM_DIR)/*.vhd )
-#endif
-#
 
 
 ## group together all Verilog/SystemVerilog and VHDL sources
