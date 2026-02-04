@@ -8,7 +8,7 @@
 
 `ifndef GLBL
 `define GLBL
-`timescale  1 ps / 1 ps
+`timescale  1 ns / 100 ps
 
 module glbl ();
 

@@ -2,9 +2,11 @@
 // Testbench module for SPI master
 //
 
+`define WIDTH 10
 
 
 `timescale 1ns / 100ps
+
 
 module tb_SPI_master ;
 
@@ -44,14 +46,11 @@ module tb_SPI_master ;
    wire sclk = 1'b0 ; 
    
    wire D_en = 1'b0;
-
-
    
+   wire   [`WIDTH - 1:0]   pdo ;   //parallel data out
 
-   wire   [9:0]   pdo ;   //parallel data out
 
-
-   SPI_master   #( .SPI_MODE(1), .WIDTH(10) )   DUT  ( .clk(clk100), .rst(rst), .MISO(sdi), .busy(busy), .CONVST(CONVST), .D_en(D_en), .ADC_Data(pdo), .sclk(sclk)) ;
+   SPI_master   #( .SPI_MODE(1), .WIDTH(`WIDTH) )   DUT  ( .clk(clk100), .rst(rst), .MISO(sdi), .busy(busy), .CONVST(CONVST), .D_en(D_en), .ADC_Data(pdo), .sclk(sclk)) ;
 
 
    ///////////////////////
@@ -59,7 +58,7 @@ module tb_SPI_master ;
    ///////////////////////
 
    integer w, b ;
-   reg [9:0] rand_word;
+   reg [`WIDTH - 1:0] rand_word;
 
    initial begin
 
@@ -69,14 +68,14 @@ module tb_SPI_master ;
       #(2000);   
 	  
 	  
-	  for (w = 0; w<3; w = w + 1) begin
+	  for (w = 0; w<5; w = w + 1) begin
 	  
 	     rand_word = $random;
 		 
 		 $display("TB: Sending ADC word %0d = %b", w, rand_word);
 		 
 		 // Send MSB first
-         for (b = 0; b < 10; b = b + 1) begin
+         for (b = 0; b < `WIDTH; b = b + 1) begin
 		 
 		    // Wait for rising edge of SCLK
 			@(posedge sclk);   //Suspend execution of the testbench at this point until a rising edge of sclk occurs

@@ -1,6 +1,6 @@
 // Implementation of SPI receiving unit 
 
-`timescale 1ns / 1ns
+`timescale 1ns / 100ps
 
 module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH = 10) (   //this SPI module talks with WIDTH-bit words
    
@@ -87,11 +87,14 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    
    reg   r_sclk;
    reg [$clog2(WIDTH)-1:0] bit_cnt;
+   reg [$clog2(WIDTH*2)-1:0] sclk_edge_cnt;
+
    
    wire sampling_en;
    assign sampling_en = (w_CPHA) ? (~r_sclk) : (r_sclk);
    
-   reg bit_done;
+   wire bit_done;
+   assign bit_done = (sclk_edge_cnt == 0);
   
 
 
@@ -152,7 +155,7 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
 		    busy = 1'b1;
 			CONVST = 1'b0;
 			
-			if (spi_tick) 
+			//if (spi_tick) 
 			
 			   STATE_NEXT = SPI_TRANSFER;
 			   
@@ -194,7 +197,8 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
       if (rst | (~pll_locked)) begin
     
 	     r_sclk  <= w_CPOL;
-         bit_cnt <= WIDTH;
+         bit_cnt <= WIDTH;   //!!WARNING!!BE AWARE OF TYPE CASTING!!
+		 sclk_edge_cnt <= WIDTH*2;   //!!WARNING!!BE AWARE OF TYPE CASTING!!
 		 ADC_Data <= {WIDTH{1'b0}};
 		 
       end   //if rst
@@ -202,29 +206,22 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
       else if (STATE == SPI_TRANSFER && spi_tick) begin
     
 	     r_sclk <= ~r_sclk;   //full r_sclk period is 100 ns. fr_sclk = 1 MHz
+		 sclk_edge_cnt <= sclk_edge_cnt - 1'b1;
 
          if (sampling_en) begin
 		 
             ADC_Data <= {ADC_Data[WIDTH-2:0], MISO};
             bit_cnt <= bit_cnt - 1'b1;
-			
-			if (bit_cnt == 0)
-		       bit_done = 1'b1;
-			else 
-			   bit_done = 1'b0;
-         
+    
 		 end
-		 
-		 
-			
-	     
-		 
+		
       end
 	  
       else if (STATE == IDLE) begin
 	  
          r_sclk  <= w_CPOL;
-         bit_cnt <= WIDTH;
+		 sclk_edge_cnt <= WIDTH*2;   //!!WARNING!!BE AWARE OF TYPE CASTING!!
+         bit_cnt <= WIDTH;   //!!WARNING!!BE AWARE OF TYPE CASTING!!
 		 
       end
 	  
