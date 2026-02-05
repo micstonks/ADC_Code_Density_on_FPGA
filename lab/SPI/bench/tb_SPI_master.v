@@ -37,14 +37,10 @@ module tb_SPI_master ;
    
   // reg sdi ;   //data pin is in X state at first
    
-   reg sdi = 1'b1 ;   
-   
+   reg sdi = 1'b1 ;    
    wire busy = 1'b0 ; 
-   
    wire CONVST = 1'b0 ;
-   
    wire sclk = 1'b0 ; 
-   
    wire D_en = 1'b0;
    
    wire   [`WIDTH - 1:0]   pdo ;   //parallel data out

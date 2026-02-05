@@ -1,18 +1,21 @@
+//
 // Implementation of SPI receiving unit 
+//
+
 
 `timescale 1ns / 100ps
 
 module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH = 10) (   //this SPI module talks with WIDTH-bit words
    
    
-   input    wire   clk,       // FPGA 100 MHz Clock
-   input    wire   rst,       // to map on FPGA Reset
+   input    wire   clk,                      // FPGA 100 MHz Clock
+   input    wire   rst,                      // to map on FPGA Reset
    input    wire   MISO,
    //input    wire  start,
    
-   output   reg   busy,       // Transaction in progress
+   output   reg   busy,                     // Transaction in progress
    output   reg   CONVST,
-   output   reg   D_en,    // Data Valid pulse (1 clock cycle)
+   output   reg   D_en,                     // Data Valid pulse (1 clock cycle)
    output   reg   [WIDTH - 1:0] ADC_Data,   // Byte received on MISO
    output   reg   sclk
    
@@ -155,12 +158,12 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
 		    busy = 1'b1;
 			CONVST = 1'b0;
 			
-			//if (spi_tick) 
+		    	//if (spi_tick) 
 			
 			   STATE_NEXT = SPI_TRANSFER;
 			   
 			   
-		 end   //WAIT_SCLK
+		 end  //WAIT_SCLK
 			
 		 SPI_TRANSFER: begin 
          
@@ -174,7 +177,7 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    
                STATE_NEXT = SPI_TRANSFER;
 		 
-		 end   //spi_transfer
+		 end  //spi_transfer
 
          DONE: begin
 
@@ -183,12 +186,12 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
 
             STATE_NEXT = IDLE;
 
-         end   //done
+         end  //done
 		 
          
       endcase
    
-   end   //always
+   end       //always
    
    
    
@@ -197,15 +200,15 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
       if (rst | (~pll_locked)) begin
     
 	     r_sclk  <= w_CPOL;
-         bit_cnt <= WIDTH;   //!!WARNING!!BE AWARE OF TYPE CASTING!!
-		 sclk_edge_cnt <= WIDTH*2;   //!!WARNING!!BE AWARE OF TYPE CASTING!!
+         bit_cnt <= WIDTH;             //!!WARNING!!BE AWARE OF TYPE CASTING!!
+		 sclk_edge_cnt <= WIDTH*2;     //!!WARNING!!BE AWARE OF TYPE CASTING!!
 		 ADC_Data <= {WIDTH{1'b0}};
 		 
       end   //if rst
 	  
       else if (STATE == SPI_TRANSFER && spi_tick) begin
     
-	     r_sclk <= ~r_sclk;   //full r_sclk period is 100 ns. fr_sclk = 1 MHz
+	     r_sclk <= ~r_sclk;            //full r_sclk period is 100 ns. fr_sclk = 1 MHz
 		 sclk_edge_cnt <= sclk_edge_cnt - 1'b1;
 
          if (sampling_en) begin
@@ -220,8 +223,8 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
       else if (STATE == IDLE) begin
 	  
          r_sclk  <= w_CPOL;
-		 sclk_edge_cnt <= WIDTH*2;   //!!WARNING!!BE AWARE OF TYPE CASTING!!
-         bit_cnt <= WIDTH;   //!!WARNING!!BE AWARE OF TYPE CASTING!!
+		 sclk_edge_cnt <= WIDTH*2;    //!!WARNING!!BE AWARE OF TYPE CASTING!!
+         bit_cnt <= WIDTH;            //!!WARNING!!BE AWARE OF TYPE CASTING!!
 		 
       end
 	  

@@ -40,8 +40,8 @@ add_wave [current_scope]/* -into [lindex [get_wave_config] 0]
 #add_wave /glbl/GSR -into [lindex [get_wave_config] 0]
 
 ## probe also all DUT signals into additional Wave window
-#add_wave [current_scope]/DUT/* -into  [lindex [get_wave_config] 1]
-#add_wave /glbl/GSR -into [lindex [get_wave_config] 1]
+add_wave [current_scope]/DUT/* -into  [lindex [get_wave_config] 1]
+add_wave /glbl/GSR -into [lindex [get_wave_config] 1]
 
 
 #######################################################
