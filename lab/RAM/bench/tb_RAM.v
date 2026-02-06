@@ -25,29 +25,27 @@ module tb_RAM ;
    // //    10 MHz RAM write-enable generator as "tick"   //
    // /////////////////////////////////////////////////////
 
-    reg ram_wen ;
+   wire ram_wen ;
 
-   // TickCounter  #(.MAX(10)) TickCounter_inst ( .clk(clk100), .tick(ram_wen)) ;
+    TickCounter  #(.MAX(10)) TickCounter_inst ( .clk(clk100), .tick(ram_wen)) ;   //histogrammer writes every 100 ns
+
+   reg write_phase;
+   reg read_phase;
+
+   wire addr_a_en = write_phase & ram_wen;
+   wire addr_b_en = read_phase  & ram_wen;
 
 
    ///////////////////////////
    //   pointer generator   //
    ///////////////////////////
 
-
    reg [$clog2(`RAM_DEPTH)-1:0] ram_addr_a = 'b0  ;     // first port address counter
    reg [$clog2(`RAM_DEPTH)-1:0] ram_addr_b = 'b0  ;     // second port address counter
 
    reg [`RAM_WIDTH -1:0] ram_din = {`RAM_WIDTH{'b0}}  ;     // second port address counter
 
-   // always @(posedge clk100) begin
-   
-      // if(ram_wen)
-         // //ram_addr_a <= #10 ram_addr_a + 'b1 ;      // add 10 ns delay only for better visualization and easier debug, everything works also without it
-         // ram_addr_a <= ram_addr_a + 'b1 ;
-		 // ram_addr_b <= ram_addr_b + 'b1 ;      // add 10 ns delay only for better visualization and easier debug, everything works also without it
 
-   // end   // always
 
 
    ///////////////////////////
@@ -61,54 +59,55 @@ module tb_RAM ;
    RAM #(.WIDTH(`RAM_WIDTH), .DEPTH(`RAM_DEPTH)) DUT (.clk(clk100), .wen(ram_wen), .addr_a(ram_addr_a), .addr_b(ram_addr_b), .din_a(ram_din), .dout_a(ram_dout_a), .dout_b(ram_dout_b)) ;
 
 
+ 
+   always @(posedge clk100) begin
+      
+	  if (addr_a_en) begin
+	  
+	     ram_addr_a <= ram_addr_a + 1'b1;
+		 ram_din <= ram_din + 1;
+
+		   
+	  end   //if
+	  
+	  if (addr_b_en) begin
+	  
+		 ram_addr_b <= ram_addr_b + 1'b1;	 
+		 
+	  end   //if 
+	  
+   end   //always
+
    ///////////////////////
    //   main stimulus   //
    ///////////////////////
-   
-   integer i;
+
+
 
    initial begin
-      // Init
-      ram_wen    = 1'b0;
-
-      // Wait some cycles
-      repeat (5) @(posedge clk100);
-
-      //---------------------------
-      // WRITE PHASE
-      //---------------------------
-      $display("Writing RAM...");
-      for (i = 0; i < `RAM_DEPTH; i = i + 1) begin
-         @(posedge clk100);
-         ram_wen    <= 1'b1;
-         ram_addr_a <= i[$clog2(`RAM_DEPTH)-1:0];
-          
-         ram_din    <= i[`RAM_WIDTH-1:0];  // pattern = address
-      end
-
-      @(posedge clk100);
-      ram_wen <= 1'b0;
-
-      //---------------------------
-      // READ + CHECK PHASE
-      //---------------------------
-      $display("Reading RAM...");
-      for (i = 0; i < `RAM_DEPTH; i = i + 1) begin
-         @(posedge clk100);
-         ram_addr_b <= i;
-
-         // @(posedge clk100);  // wait for sync read
-         // if (ram_dout_b !== i[`RAM_WIDTH-1:0]) begin
-            // $error("RAM ERROR at addr %0b: expected %0b, got %0b",
-                   // i[$clog2(`RAM_DEPTH)-1:0], i[`RAM_WIDTH-1:0], ram_dout_b);
-            // $fatal;
-         //
-		 
-		 end   //if
-      end   //for
-
-      $finish;
+      
+	  write_phase <= 1'b1;
+      read_phase <= 1'b0;
+	 
+      repeat (10240) @(posedge clk100);		 
+	  
+	  
+	  write_phase <= 1'b0;
+	  
+	  #100
+	  
+	  read_phase <= 1'b1;
+	  
+      repeat (10240) @(posedge clk100);		         
+      
+      $finish ;   
+	  
    end   //initial
+   
+      
+   always @(negedge ram_wen)
+      
+      $display("Adress b: %b, Data: %b \n", ram_addr_b, ram_dout_b) ;
 
 endmodule
   
