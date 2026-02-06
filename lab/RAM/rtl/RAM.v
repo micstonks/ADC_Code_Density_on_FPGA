@@ -2,7 +2,7 @@
 
 `timescale 1ns / 100ps
 
-module RAM #(parameter integer WIDTH = 12, parameter integer DEPTH = 1024) (
+module RAM #(parameter integer WIDTH = 16, parameter integer DEPTH = 1024) (
 
    input  wire clk,
    input  wire wen,

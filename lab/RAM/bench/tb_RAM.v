@@ -3,7 +3,7 @@
 //
 
 
-`define RAM_WIDTH  10
+`define RAM_WIDTH  16
 `define RAM_DEPTH  1024
 
 
