@@ -1,17 +1,14 @@
-//
-// Implementation of UART transmission unit using a Finite State Machine (FSM).
-// The block only transmits one BYTE and it is foreseen to be interfaced with a FIFO.
-//
-// Luca Pacher - pacher@to.infn.it
-// Update -> Conti-Ragusa
-//
-//
-//   __________________       _____ _____ _____ _____ _____ _____ _____ _____ _____ _____ ______
-//                     \_____/_____X_____X_____X_____X_____X_____X_____X_____X_____X_____X     :
-//
-//         IDLE        START  BIT0  BIT1  BIT2  BIT3  BIT4  BIT5  BIT6  BIT7  BIT8   BIT9 STOP  IDLE
-//
-//
+/*------------------------------------------------------------------------------------------------------------
+ Implementation of UART transmission unit using a Finite Circulate State Machine (FSM).
+ Authors -> Conti-Ragusa
+
+
+     __________________       _____ _____ _____ _____ _____ _____ _____ _____ _____ _____ ______ __________
+                       \_____/_____X_____X_____X_____X_____X_____X_____X_____X_____X_____X_____X      :
+ 
+           IDLE        START  BIT0  BIT1  BIT2  BIT3  BIT4  BIT5  BIT6  BIT7  BIT8   BIT9 PARITY STOP  IDLE
+
+------------------------------------------------------------------------------------------------------------*/
 
 
 `timescale 1ns / 100ps
@@ -23,17 +20,15 @@ module uart_tx_FSM (
    input  wire tx_start,                // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
    input  wire tx_en,                   // baud-rate "tick", single clock-pulse asserted once every 1/(9.6 kHz)
    input  wire [9:0] tx_data,           // byte to be transmitted over the serial lane
-   //output reg  tx_busy,
-   //output reg  tx_done,
-   output reg  TxD,                      // serial output stream
-   output reg  par                       //parity output
+   output reg  TxD,                     // serial output stream
+   output reg  par                      //parity output
 
    ) ;
 
 
-   ///////////////////////////
-   //   states definition   //
-   ///////////////////////////
+   /*--------------------------
+   /    states definition     /
+   -------------------------*/
 
    // simply assume a straight-binary states encoding and count from 0 to 12
    parameter [6:0] IDLE  = 3'h0 ;
@@ -47,12 +42,17 @@ module uart_tx_FSM (
    reg [2:0] STATE, STATE_NEXT ;
 
 
-   ///////////////////////
-   //   input buffers   //
-   ///////////////////////
-
+    /*------------------
+   /   input buffers   /
+   ------------------*/
+   
+   
    reg [9:0] tx_data_buf ;   // **WARN: in hardware this becomes a bank of LATCHES !
    reg [3:0] count, count_next ;
+
+
+
+
 
    /////////////////////////////////////////////////
    //   next-state logic (pure sequential part)   //
@@ -85,8 +85,7 @@ module uart_tx_FSM (
          IDLE : begin
 
             TxD     = 1'b1 ;
-            //tx_busy = 1'b0 ;
-            //tx_done = 1'b0 ;
+     
 
             if (tx_start)
                STATE_NEXT = LOAD ;       //  move to LOAD and wait for the first Baud "tick" before starting the transaction
@@ -101,8 +100,7 @@ module uart_tx_FSM (
          LOAD : begin
 
             TxD     = 1'b1 ;   // the serial output is still in "idle"
-            //tx_busy = 1'b1 ;
-            //tx_done = 1'b0 ;
+         
 
             tx_data_buf[9:0] = tx_data[9:0] ;   // LATCHES here !
 
@@ -137,23 +135,23 @@ module uart_tx_FSM (
               if (count >= 4'b1001) begin
                 count_next = 4'b0000;       //force the count roll-over
                 STATE_NEXT = PARITY;
-              end//if
+              end
             else begin
                 count_next = count + 4'b1; 
                 STATE_NEXT = SEND;         // stay in SEND
-            end//else
-           end//if
+            end
+           end
             else begin
              count_next = count;
              STATE_NEXT = SEND;
-             end//else
+             end
           end//SEND
 		  
 		  //_____________________________
 
          PARITY : begin
              par = ^tx_data_buf;
-             TxD = par ;            // assert STOP bit to '1' as requested by RS-232 protocol
+             TxD = par ;                // assert STOP bit to '1' as requested by RS-232 protocol
 
             if (tx_en)
                STATE_NEXT = STOP ;
@@ -165,11 +163,9 @@ module uart_tx_FSM (
          STOP : begin
 
             TxD     = 1'b1 ;            // assert STOP bit to '1' as requested by RS-232 protocol
-            //tx_busy = 1'b1 ;
-            //tx_done = 1'b1 ;            // assert a single clock-pulse tx_done when moving back to IDLE
-
+            
             if (tx_en)
-               //STATE_NEXT = IDLE ;
+              
                STATE_NEXT = PAUSE ;
             else
                STATE_NEXT = STOP ;

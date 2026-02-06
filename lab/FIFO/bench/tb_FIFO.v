@@ -1,10 +1,8 @@
 //
-// Example testbench to simulate an 8-bit wide, 32-bit deep First-In Fisrt-Out (FIFO)
+//
+// Example testbench to simulate an 10-bit wide, 32-bit deep First-In Fisrt-Out (FIFO)
 // memory compiled as IP using Xilinx FIFO Generator.
 //
-// The $stop Verilog task is executed whenever a FIFO-full condition is detected and
-// pauses the simulation. To continue the simulation until the end issuing "run all"
-// in the XSim Tcl console.
 //
 // Conti - Ragusa
 //
@@ -38,28 +36,28 @@ module tb_FIFO ;
    reg wr_enable = 1'b0 ;
    reg rd_enable = 1'b0 ;
 
-   reg  [9:0] wr_data = 10'h000 ;
-   wire [9:0] rd_data ;
+   reg  [`FIFO_WIDTH-1:0] wr_data = 10'h000 ;
+   wire [`FIFO_WIDTH-1:0] rd_data ;
 
    wire empty, full ;
 
-   FIFO  DUT (
+   FIFO #(.WIDTH(`FIFO_WIDTH)) DUT (
 
       // clock and reset
-      .Clock     (       clk100 ),
-      .Reset     (          rst ),
-
+      .clk        (                     clk100 ),
+      .Reset      (                       rst  ),
+ 
       // write section
-      .WrEnable  (    wr_enable ),
-      .WrData    ( wr_data[9:0] ),
+      .WrEnable  (                  wr_enable ),
+      .WrData    (   wr_data[`FIFO_WIDTH-1:0] ),
 
       // read section
-      .RdEnable  (    rd_enable ),
-      .RdData    ( rd_data[9:0] ),
+      .RdEnable  (                  rd_enable ),
+      .RdData    (   rd_data[`FIFO_WIDTH-1:0] ),
 
       // diagnostics
-      .Full      (         full ),
-      .Empty     (        empty )
+      .Full      (                       full ),
+      .Empty     (                      empty )
 
       ) ;
 

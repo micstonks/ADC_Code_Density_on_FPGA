@@ -1,26 +1,31 @@
-//
-// A simple Verilog "wrapper" for the automatically-generated FIFO IP core.
-//
-// Conti - Ragusa 
-// 
-//
 
+/*-------------------------------------------------------------------------
+ Verilog "wrapper" for the automatically-generated FIFO IP core.
+ Authors -> Conti - Ragusa 
+       _______    ______      _____
+      |sensor |->| FIFO | -> | DAQ |
+      |_______|  |______|    |_____|
+---------------------------------------------------------------------------*/
+
+  /*---------------------------------
+  /     FIFO_WIDTH10_DEPTH32        /
+  --------------------------------*/
 
 `timescale 1ns / 100ps
 
-module FIFO (
+module FIFO #(parameter integer WIDTH=10 )(
 
    // clock and reset
-   input  wire Clock,              // assume on-board 100 MHz clock
+   input  wire clk,                // assume on-board 100 MHz clock
    input  wire Reset,              // synchronous reset, active-high
 
    // write section
    input  wire WrEnable,           // write-enable
-   input  wire [9:0] WrData,       // input data
+   input  wire [WIDTH-1:0] WrData, // input data
 
    // read section
    input  wire RdEnable,           // read-enable
-   output wire [9:0] RdData,       // output data
+   output wire [WIDTH-1:0] RdData, // output data
 
    // diagnostics
    output wire Full, Empty         // status flags
@@ -28,22 +33,39 @@ module FIFO (
    ) ;
 
 
-   //////////////////////////////////
-   //   FIFO IP (FIFO Generator)   //
-   //////////////////////////////////
+   /*-------------------------------------
+   /    PLL IP core (Clocking Wizard)    /
+   ------------------------------------*/
+
+   // PLL signals
+   wire pll_clk, pll_locked,UNCONNECTED;
+   PLL  PLL_inst ( .CLK_IN(clk), .CLK_OUT_100(pll_clk), .CLK_OUT_200(UNCONNECTED), .LOCKED(pll_locked) ) ;    // 100 MHz output clock
+   
+   /*-----------------------------------------
+   /    modulus-MAX 32-bit tick generator    /
+   ----------------------------------------*/
+   
+   TickCounter #( .MAX(330) ) TickCounter_inst1 ( .clk(pll_clk), .tick(WrEnable) );   // Wr_en 1 tick with  2.3 FSM send flag to conversion plus 1us for 10-bit transfer 
+   TickCounter #( .MAX(430) ) TickCounter_inst1 ( .clk(pll_clk), .tick(RrEnable) );   // Rd_en after another 1 us
+   
+   
+
+   /*-------------------------------
+   /    FIFO IP (FIFO Generator)   /
+    -----------------------------*/
 
    // **NOTE: the actual FIFO implementation is placed in ../cores/FIFO_WIDTH8_DEPTH32/FIFO_WIDTH8_DEPTH32_sim_netlist.v
 
    FIFO_WIDTH10_DEPTH32   FIFO_WIDTH10_DEPTH32_inst (
 
-      .clk    (        Clock ),
-      .srst   (        Reset ),
-      .din    (  WrData[9:0] ),
-      .wr_en  (     WrEnable ),
-      .rd_en  (     RdEnable ),
-      .dout   (  RdData[9:0] ),
-      .full   (         Full ),
-      .empty  (        Empty )
+      .clk    (               pll_clk ),
+      .srst   (  Reset| (~pll_locked) ),
+      .din    (     WrData[WIDTH-1:0] ),
+      .wr_en  (              WrEnable ),
+      .rd_en  (              RdEnable ),
+      .dout   (     RdData[WIDTH-1:0] ),
+      .full   (                  Full ),
+      .empty  (                 Empty )
 
       ) ;
 
