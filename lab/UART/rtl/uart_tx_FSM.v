@@ -48,7 +48,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 	 
 	 wire UNCONNECTED_1;
 	 
-	 RAM #(WIDTH=WIDTH_DATA,DEPTH=1024) ram_inst(
+	 RAM #(.WIDTH(WIDTH_DATA),.DEPTH(1024)) ram_inst(
 	    .clk(clk),
 		.wen(UNCONNECTED_1),
         .addr_a(UNCONNECTED_1),
@@ -101,7 +101,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    ------------------*/
    
    
-   reg [7:0] tx_byte_buf;                      // **WARN: in hardware this becomes a bank of LATCHES !
+   reg [7:0] tx_data_buf ;                      // **WARN: in hardware this becomes a bank of LATCHES !
    // reg [2:0] count, count_next ;
    reg [1:0] byte_index,byte_index_new;        // 2 bit bastano per 4 byte
    reg [2:0] STATE, STATE_NEXT ;
@@ -169,7 +169,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
             TxD     = 1'b0 ;                   // assert START bit to '0' as requested by RS-232 protocol
 
             if (tx_en)
-               STATE_NEXT = SEND ;
+               STATE_NEXT = SEND_BYTE ;
             else
                STATE_NEXT = START ;
 
@@ -181,10 +181,10 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 				byte_index = byte_index_new;
                     // seleziona il byte corretto in base a byte_index
                     case(byte_index)
-                        2'd0: tx_byte_buf <= addr_hi;
-                        2'd1: tx_byte_buf <= addr_lo;
-                        2'd2: tx_byte_buf <= tx_data_hi;
-                        2'd3: tx_byte_buf <= tx_data_lo;
+                        2'd0: tx_data_buf <= addr_hi;
+                        2'd1: tx_data_buf <= addr_lo;
+                        2'd2: tx_data_buf <= tx_data_hi;
+                        2'd3: tx_data_buf <= tx_data_lo;
                     endcase
 
                     // qui va la logica dei bit seriali, conteggio ecc.
