@@ -13,156 +13,236 @@
 
 `timescale 1ns / 100ps
 
-module uart_tx_FSM (
 
-   input  wire clk,                     // assume 100 MHz on-board system clock
-   input  wire rst,                     // synchronous reset, active high
-   input  wire tx_start,                // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
-   input  wire tx_en,                   // baud-rate "tick", single clock-pulse asserted once every 1/(9.6 kHz)
-   input  wire [9:0] tx_data,           // byte to be transmitted over the serial lane
-   output reg  TxD,                     // serial output stream
-   output reg  par                      //parity output
 
+
+module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_ADDR=10)(
+
+   input  wire clk,                              // assume 100 MHz on-board system clock
+   input  wire rst,                              // synchronous reset, active high
+   input  wire tx_start,                         // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
+   input  wire tx_en,                            // baud-rate "tick", single clock-pulse asserted once every 1/(9.6 kHz)
+   input  wire [WIDTH_DATA-1:0] tx_data,         // 2 byte to be transmitted over the serial lane
+   output reg  TxD,                              // serial output stream
+   output reg  par,                              // parity output
+   output reg [LENGTH_ADDR-1:0] addr             // 10bit for the address            
    ) ;
+
+  /*----------------------------
+  /   Address register         /
+  ----------------------------*/
+
+
+   always @(posedge clk) begin
+    if (rst) 
+        addr <= {LENGTH_ADDR{1'b0}};
+     else if (tx_en && byte_index == 2'd3)      // last byte send
+        addr <= addr + 1'b1;                    // move to the next cell
+     end
+  
+	 
+	 
+	 /*--------------------------------
+	    RAM istant
+	 --------------------------------*/
+	 
+	 wire UNCONNECTED_1;
+	 
+	 RAM #(WIDTH=WIDTH_DATA,DEPTH=1024) ram_inst(
+	    .clk(clk),
+		.wen(UNCONNECTED_1),
+        .addr_a(UNCONNECTED_1),
+        .addr_b(addr), // nostro tizio 
+	    .din_a(UNCONNECTED_1), 
+		.dout_a(UNCONNECTED_1),
+		.dout_b(tx_data)
+	 );
+
+
+
+
+
+
+
+
+
+
+
+    /*---------------------------------------
+	/   Splitting into 2- bytes for  reading /
+    ----------------------------------------*/
+
+   wire [7:0] addr_hi = {6'b0,  addr [9:8]};                  //BYTE0 for the addres using 2-byte
+   wire [7:0] addr_lo =  addr [7:0];                          //BYTE1
+       
+   wire [7:0] tx_data_hi = tx_data[WIDTH_DATA-1:8];           //BYTE2
+   wire [7:0] tx_data_lo = tx_data[7:0];                     //BYTE3 UART works at 8bit,for the data using 2-byte
+
 
 
    /*--------------------------
    /    states definition     /
    -------------------------*/
 
-   // simply assume a straight-binary states encoding and count from 0 to 12
-   parameter [6:0] IDLE  = 3'h0 ;
-   parameter [6:0] LOAD  = 3'h1 ;
-   parameter [6:0] START = 3'h2 ;
-   parameter [6:0] SEND  = 3'h3 ;
-   parameter [6:0] PARITY= 3'h4 ;
-   parameter [6:0] STOP  = 3'h5 ;  
-   parameter [6:0] PAUSE = 3'h6 ;   // optionally wait for another baud period before moving to IDLE
+   // simply assume a straight-binary states encoding and count from 0 to 7
+   parameter [2:0] IDLE        = 3'h0 ;
+   parameter [2:0] LOAD        = 3'h1 ;
+   parameter [2:0] START       = 3'h2 ;
+   parameter [2:0] SEND_BYTE   = 3'h3 ;           //SEND BYTE 
+   parameter [2:0] PARITY      = 3'h4 ;
+   parameter [2:0] STOP        = 3'h5 ;  
+   parameter [2:0] PAUSE       = 3'h6 ;           // optionally wait for another baud period before moving to IDLE
 
-   reg [2:0] STATE, STATE_NEXT ;
-
+ 
+   
 
     /*------------------
    /   input buffers   /
    ------------------*/
    
    
-   reg [9:0] tx_data_buf ;   // **WARN: in hardware this becomes a bank of LATCHES !
-   reg [3:0] count, count_next ;
+   reg [7:0] tx_byte_buf;                      // **WARN: in hardware this becomes a bank of LATCHES !
+   // reg [2:0] count, count_next ;
+   reg [1:0] byte_index,byte_index_new;        // 2 bit bastano per 4 byte
+   reg [2:0] STATE, STATE_NEXT ;
 
 
 
+    /*--------------------------------------------
+   /   next-state logic (pure sequential part)   /
+   --------------------------------------------*/
 
-
-   /////////////////////////////////////////////////
-   //   next-state logic (pure sequential part)   //
-   /////////////////////////////////////////////////
-
-   always @(posedge clk) begin      // infer a bank of FlipFlops
+   always @(posedge clk) begin               // infer a bank of FlipFlops
 
       if(rst)begin
          STATE <= IDLE ;
-		 count <= 4'b0;
-		 count_next <= 4'b0;
+		/*  count <= 3'b0;
+		 count_next <= 3'b0; */
+		 byte_index <= 2'b0;
 		 end
-      else 
+      else begin
          STATE <= STATE_NEXT ;		 
-	     count <= count_next;
+	    /*  count <= count_next; */
+	  end
    end   // always
+   
+   
+     
 
-
-   ////////////////////////////
-   //   combinational part   //
-   ////////////////////////////
+     /*-----------------------
+    /   combinational part   /
+   ------------------------*/
 
    always @(*) begin
 
-      TxD = 1'b1 ;   // latches inferred otherwise
-      
-	  
-      case( STATE )
+      TxD = 1'b1 ;                                // latches inferred otherwise
 
+      case( STATE )
+  
          IDLE : begin
 
             TxD     = 1'b1 ;
-     
-
             if (tx_start)
-               STATE_NEXT = LOAD ;       //  move to LOAD and wait for the first Baud "tick" before starting the transaction
+               STATE_NEXT = LOAD ;               // move to LOAD and wait for the first Baud "tick" before starting the transaction
             else
                STATE_NEXT = IDLE ;
 
-         end   // IDLE
+         end    //IDLE
 
-         //_____________________________
-
+   //__________________________________
 
          LOAD : begin
 
-            TxD     = 1'b1 ;   // the serial output is still in "idle"
-         
-
+            TxD     = 1'b1 ;                    // the serial output is still in "idle"
             tx_data_buf[9:0] = tx_data[9:0] ;   // LATCHES here !
 
-            if (tx_en)                    // **IMPORTANT: move to next state only if a baud "tick" is present !
+            if (tx_en)                          // **IMPORTANT: move to next state only if a baud "tick" is present !
                STATE_NEXT = START ;
             else
                STATE_NEXT = LOAD ;
 
-         end   // LOAD
-         //_____________________________
-
+         end   //LOAD
+   //__________________________________
 
          START : begin
 
-            TxD     = 1'b0 ;              // assert START bit to '0' as requested by RS-232 protocol
-            //tx_busy = 1'b1 ;
-            //tx_done = 1'b0 ;
+            TxD     = 1'b0 ;                   // assert START bit to '0' as requested by RS-232 protocol
 
             if (tx_en)
                STATE_NEXT = SEND ;
             else
                STATE_NEXT = START ;
 
-         end   // START
-     
-         //_________________________
-         SEND: begin
+         end    //START
+   //_________________________________
+        
+		SEND_BYTE: begin
+                if (tx_en) begin
+				byte_index = byte_index_new;
+                    // seleziona il byte corretto in base a byte_index
+                    case(byte_index)
+                        2'd0: tx_byte_buf <= addr_hi;
+                        2'd1: tx_byte_buf <= addr_lo;
+                        2'd2: tx_byte_buf <= tx_data_hi;
+                        2'd3: tx_byte_buf <= tx_data_lo;
+                    endcase
+
+                    // qui va la logica dei bit seriali, conteggio ecc.
+
+                        if (byte_index == 2'd3) 
+                           byte_index_new = 2'd0;
+                        else begin
+                            byte_index_new <= byte_index + 1;
+							 STATE <= PARITY;
+							 end
+			
+                end //if
+				
+				 else
+				  STATE_NEXT = SEND_BYTE;
+            end //SEND_BYTE
+	//________________________________
+	/* 		
+		SEND_BYTE0: begin
 		   
              TxD = tx_data_buf[9-count];
 
             if (tx_en) begin
               if (count >= 4'b1001) begin
-                count_next = 4'b0000;       //force the count roll-over
+                count_next = 4'b0000;        //force the count roll-over
                 STATE_NEXT = PARITY;
               end
             else begin
                 count_next = count + 4'b1; 
-                STATE_NEXT = SEND;         // stay in SEND
-            end
+                STATE_NEXT = SEND;          // stay in SEND
+            end 
            end
             else begin
              count_next = count;
              STATE_NEXT = SEND;
              end
-          end//SEND
-		  
-		  //_____________________________
+          end    //SEND_BYTE0  
+   
+	*/
+    //________________________________
+
 
          PARITY : begin
              par = ^tx_data_buf;
-             TxD = par ;                // assert STOP bit to '1' as requested by RS-232 protocol
+             TxD = par ;                    // assert STOP bit to '1' as requested by RS-232 protocol
 
             if (tx_en)
                STATE_NEXT = STOP ;
             else
                STATE_NEXT = PARITY ;
 
-         end   // PARITY
-         //_____________________________
-         STOP : begin
+         end    //PARITY
+   
+   //_________________________________
+        
+		STOP : begin
 
-            TxD     = 1'b1 ;            // assert STOP bit to '1' as requested by RS-232 protocol
+            TxD     = 1'b1 ;                 // assert STOP bit to '1' as requested by RS-232 protocol
             
             if (tx_en)
               
@@ -171,8 +251,8 @@ module uart_tx_FSM (
                STATE_NEXT = STOP ;
 
          end   // STOP
-         //_____________________________
-
+         
+  //__________________________________
 
          PAUSE : begin
 
@@ -185,7 +265,7 @@ module uart_tx_FSM (
 
          end   // PAUSE
 
-         default : STATE_NEXT = IDLE ;   // **IMPORTANT: latches inferred otherwise !
+         default : STATE_NEXT = IDLE ;       // **IMPORTANT: latches inferred otherwise !
 
       endcase
 
