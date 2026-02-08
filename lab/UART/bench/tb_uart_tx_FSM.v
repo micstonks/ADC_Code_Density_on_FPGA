@@ -5,6 +5,10 @@
 // Spring 2020
 //
 
+`define DATA_LENGTH   //width RAM
+`define ADDRESS_LENGTH   //depth RAM
+
+
 
 `timescale 1ns / 100ps
 
