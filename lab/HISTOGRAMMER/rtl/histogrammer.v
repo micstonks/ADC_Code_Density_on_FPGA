@@ -1,300 +1,230 @@
+
 //
-// Implementation of UART transmission unit using a Finite State Machine (FSM).
-// The block only transmits one BYTE and it is foreseen to be interfaced with a FIFO.
+// 
+//    HISTOGRAMMER  
+//    Authors -> Conti -Ragusa 
 //
-// Luca Pacher - pacher@to.infn.it
-// Fall 2020
-//
-//
-//   __________________       _____ _____ _____ _____ _____ _____ _____ _____ _____ ___________
-//                     \_____/_____X_____X_____X_____X_____X_____X_____X_____X     :
-//
-//         IDLE        START  BIT0  BIT1  BIT2  BIT3  BIT4  BIT5  BIT6  BIT7  STOP  IDLE
+//               _________         _____ _____ _____   ___ _____ 
+//              |   FIFO  |_______| HISTOGRAMMER   |___|   RAM  |
+//              |_________|       |________________|   |________|
+//         
 //
 //
+
+
+
+
+`define WIDTH_FIFO 10
+`define DEPTH_FIFO 32
+`define WIDTH_RAM  16
+`define DEPTH_RAM  1024
+
 
 
 `timescale 1ns / 100ps
 
 module histogrammer (
 
-   input  wire clk,                     // assume 100 MHz on-board system clock
-   input  wire rst,                     // synchronous reset, active high
-   input  wire tx_start,                // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
-   input  wire tx_en,                   // baud-rate "tick", single clock-pulse asserted once every 1/(9.6 kHz)
-   input  wire [7:0] tx_data,           // byte to be transmitted over the serial lane
-   //output reg  tx_busy,
-   //output reg  tx_done,
-   output reg  TxD                      // serial output stream
+   input  wire clk,                                // assume 100 MHz on-board system clock
+   input  wire rst,                                // synchronous reset, active high 
+   input  wire [`WIDTH_FIFO-1:0] rd_data_FIFO,     // rd_data by FIFO
+   input  wire [`WIDTH_RAM-1 :0] rd_data_RAM,
+   input  wire empty,                              // empty FIFO
+   input  wire full,                              // fully FIFO
+   
+   
+   output reg rd_en_FIFO,                          // Histogrammer check the reading for the FIFO
+   output reg wr_en_RAM,                           // Histogrammer check the writing for the RAM
+   output reg [`WIDTH_RAM-1:0] addr,
+   output reg [`WIDTH_RAM-1:0] data_hist           // go to RAM
+   ) ;
+   
+   
+   
+   always @(posedge clk) begin
+      if (rst)
+        addr <= {`WIDTH_RAM{1'b0}};
+    else  
+        addr <= addr + 1'b1;
+   end // always
+  
+   ///////////////////////////////
+   //   FIFO   Instantiate     //
+   /////////////////////////////
+   
+   wire UNCONNECTED_wr_en;
+   wire [`WIDTH_FIFO-1:0] UNCONNECTED_wr_data;
+  
+  
+  
+   FIFO #( .WIDTH(`WIDTH_FIFO) ) FIFO_inst(
+
+          .clk(clk),                       // assume on-board 100 MHz clock
+          .Reset(rst),                     // synchronous reset, active-high
+          .WrEnable(UNCONNECTED_wr_en),    // write-enable
+          .WrData(UNCONNECTED_wr_data),    // input data
+          .RdEnable(rd_en_FIFO),           // read-enable
+          .RdData(rd_data_FIFO),           // output data
+          .Full(full),
+		  .Empty(empty)                    // status flags
 
    ) ;
    
-    ///////////////////////////
-   //   states definition   //
+   
+   
+   ///////////////////////////////
+   //   RAM    Instantiate     //
+   /////////////////////////////
+   
+   wire [`WIDTH_RAM-1:0] UNCONNECTED_ADDR,UNCONNECTED_DATA;
+   
+   RAM #( .WIDTH (`WIDTH_RAM), .DEPTH (`DEPTH_RAM)) RAM_inst(
+
+         .clk(clk),
+         .wen(wr_en_RAM ),
+         .addr_a(addr), 
+         .addr_b(UNCONNECTED_ADDR),              // address 0 to DEPTH-1 memory locations (10-bits for 1024 samples)
+         .din_a(data_hist),
+         .dout_a(rd_data_RAM), 
+         .dout_b(UNCONNECTED_DATA)
+
+   ) ;
+   
+   
+   
+   
+   
+   
+     ///////////////////////////
+    //   states definition   //
    ///////////////////////////
 
    // simply assume a straight-binary states encoding and count from 0 to 12
-   parameter [2:0] IDLE  = 3'h0 ;
-   parameter [3:0] READ_FIFO  = 4'h1 ;
-   parameter [3:0] READ_RAM = 4'h2 ;
-   parameter [3:0] COUNT  = 4'h3 ;
-   parameter [3:0] WRITE_RAM  = 4'h4 ;
-   parameter [3:0] STOP  = 4'h4 ;
+   parameter [2:0] IDLE       = 3'h0 ;
+   parameter [2:0] START_FIFO = 3'h1 ;
+   parameter [2:0] READ_FIFO  = 3'h2 ;
+   parameter [2:0] READ_RAM   = 3'h3 ;
+   parameter [2:0] COUNT      = 3'h4 ;
+   parameter [2:0] START_RAM  = 3'h5 ;
+   parameter [2:0] WRITE_RAM  = 3'h6 ;
+   parameter [2:0] PAUSE      = 3'h7 ;    //wait for one clock
   
-  
+ 
+
+   reg [2:0] STATE, STATE_NEXT ;
+
+
+   ///////////////////////
+   //   input buffers   //
+   ///////////////////////
+
+   reg [`WIDTH_FIFO-1:0] rd_data_FIFO_buf ;               // **WARN: in hardware this becomes a bank of LATCHES !
+   reg [`WIDTH_RAM-1:0] rd_data_RAM_buf ;
 
-   // ///////////////////////////
-   // //   states definition   //
-   // ///////////////////////////
+   
+   
+   
+   ///////////////////////////////////////////////
+   //  next-state logic (pure sequential part)  // 
+  ///////////////////////////////////////////////
 
-   // // simply assume a straight-binary states encoding and count from 0 to 12
-   // parameter [3:0] IDLE  = 4'h0 ;
-   // parameter [3:0] LOAD  = 4'h1 ;
-   // parameter [3:0] START = 4'h2 ;
-   // parameter [3:0] BIT0  = 4'h3 ;
-   // parameter [3:0] BIT1  = 4'h4 ;
-   // parameter [3:0] BIT2  = 4'h5 ;
-   // parameter [3:0] BIT3  = 4'h6 ;
-   // parameter [3:0] BIT4  = 4'h7 ;
-   // parameter [3:0] BIT5  = 4'h8 ;
-   // parameter [3:0] BIT6  = 4'h9 ;
-   // parameter [3:0] BIT7  = 4'hA ;
-   // parameter [3:0] STOP  = 4'hB ;
-   // parameter [3:0] PAUSE = 4'hC ;   // optionally wait for another baud period before moving to IDLE
+   always @(posedge clk) begin      // infer a bank of FlipFlops
 
-   // reg [3:0] STATE, STATE_NEXT ;
+      if(rst)
+         STATE <= IDLE ;
+      else
+         STATE <= STATE_NEXT ;
 
+   end   // always
 
-   // ///////////////////////
-   // //   input buffers   //
-   // ///////////////////////
 
-   // reg [7:0] tx_data_buf ;   // **WARN: in hardware this becomes a bank of LATCHES !
+   ////////////////////////////
+   //   combinational part   //
+   ////////////////////////////
 
+   always @(*) begin
 
-   // /////////////////////////////////////////////////
-   // //   next-state logic (pure sequential part)   //
-   // /////////////////////////////////////////////////
+      case( STATE )
 
-   // always @(posedge clk) begin      // infer a bank of FlipFlops
+         IDLE : begin
 
-      // if(rst)
-         // STATE <= IDLE ;
+            rd_en_FIFO = 1'b0;
+            wr_en_RAM = 1'b0;
+            
+			if (~empty )
+               STATE_NEXT = START_FIFO ;       // move to LOAD and wait for the first Baud "tick" before starting the transaction
+            else
+               STATE_NEXT = IDLE ;
 
-      // else
-         // STATE <= STATE_NEXT ;
+         end   // IDLE
 
-   // end   // always
+    //_________________________________________
+         
+    	 START_FIFO: begin
+		 
+		        rd_en_FIFO = 1'b1 ;
+		        STATE_NEXT = READ_FIFO ;
+		 
+		 end   //START_FIFO
+    //_________________________________________
+         
+		 READ_FIFO: begin
+    
+	        rd_en_FIFO = 1'b0 ;
+            rd_data_FIFO_buf = rd_data_FIFO  ;  
+            STATE_NEXT = READ_RAM ; 
 
+         end   // READ_FIFO
+   //__________________________________________
 
-   // ////////////////////////////
-   // //   combinational part   //
-   // ////////////////////////////
+         READ_RAM : begin
 
-   // always @(*) begin
+               addr = rd_data_FIFO_buf ;      // send addr to RAM
+               STATE_NEXT = COUNT ;
 
-      // TxD = 1'b1 ;   // latches inferred otherwise
+         end   // READ_RAM
+   //_________________________________________
 
-      // case( STATE )
 
-         // IDLE : begin
+         COUNT : begin
+    
+	        rd_data_RAM_buf = rd_data_RAM;
+			rd_data_RAM_buf = rd_data_RAM_buf +1'b1;
+            STATE_NEXT = START_RAM ;
 
-            // TxD     = 1'b1 ;
-            // //tx_busy = 1'b0 ;
-            // //tx_done = 1'b0 ;
+         end   // COUNT
+  //_________________________________________
+        
+		START_RAM: begin
+		 
+		        wr_en_RAM = 1'b1;
+		        STATE_NEXT = WRITE_RAM;
+		 
+		 end   //START_RAM
+  //_________________________________________
+         
+		WRITE_RAM : begin
+             
+			 wr_en_RAM = 1'b0;
+             data_hist = rd_data_RAM_buf ;
+             STATE_NEXT = PAUSE ;
 
-            // if (tx_start)
-               // STATE_NEXT = LOAD ;       //  move to LOAD and wait for the first Baud "tick" before starting the transaction
-            // else
-               // STATE_NEXT = IDLE ;
+         end   // WRITE_RAM
+   //________________________________________
 
-         // end   // IDLE
+        PAUSE: begin
+               
+               STATE_NEXT = IDLE;
 
-         // //_____________________________
+         end   // PAUSE
+   //________________________________________
 
 
-         // LOAD : begin
+         default : STATE_NEXT = IDLE ;   // **IMPORTANT: latches inferred otherwise !
 
-            // TxD     = 1'b1 ;   // the serial output is still in "idle"
-            // //tx_busy = 1'b1 ;
-            // //tx_done = 1'b0 ;
+      endcase
 
-            // tx_data_buf[7:0] = tx_data[7:0] ;   // LATCHES here !
+   end   // always
 
-            // if (tx_en)                    // **IMPORTANT: move to next state only if a baud "tick" is present !
-               // STATE_NEXT = START ;
-            // else
-               // STATE_NEXT = LOAD ;
-
-         // end   // LOAD
-         // //_____________________________
-
-
-         // START : begin
-
-            // TxD     = 1'b0 ;              // assert START bit to '0' as requested by RS-232 protocol
-            // //tx_busy = 1'b1 ;
-            // //tx_done = 1'b0 ;
-
-            // if (tx_en)
-               // STATE_NEXT = BIT0 ;
-            // else
-               // STATE_NEXT = START ;
-
-         // end   // START
-         // //_____________________________
-
-
-         // BIT0 : begin
-
-            // TxD     = tx_data_buf[0] ;    // send the LSB first as requested by RS-232 protocol
-            // //tx_busy = 1'b1 ;
-            // //tx_done = 1'b0 ;
-
-            // if (tx_en)
-               // STATE_NEXT = BIT1 ;
-            // else
-               // STATE_NEXT = BIT0 ;
-
-         // end   // BIT0
-         // //_____________________________
-
-
-         // BIT1 : begin
-
-            // TxD     = tx_data_buf[1] ;
-            // //tx_busy = 1'b1 ;
-            // //tx_done = 1'b0 ;
-
-            // if (tx_en)
-               // STATE_NEXT = BIT2 ;
-            // else
-               // STATE_NEXT = BIT1 ;
-
-         // end   // BIT1
-         // //_____________________________
-
-
-         // BIT2 : begin
-
-            // TxD     = tx_data_buf[2] ;
-            // //tx_busy = 1'b1 ;
-            // //tx_done = 1'b0 ;
-
-            // if (tx_en)
-               // STATE_NEXT = BIT3 ;
-            // else
-               // STATE_NEXT = BIT2 ;
-
-         // end   // BIT2
-         // //_____________________________
-
-
-         // BIT3 : begin
-
-            // TxD     = tx_data_buf[3] ;
-            // //tx_busy = 1'b1 ;
-            // //tx_done = 1'b0 ;
-
-            // if (tx_en)
-               // STATE_NEXT = BIT4 ;
-            // else
-               // STATE_NEXT = BIT3 ;
-
-         // end   // BIT3
-         // //_____________________________
-
-
-         // BIT4 : begin
-
-            // TxD     = tx_data_buf[4] ;
-            // //tx_busy = 1'b1 ;
-            // //tx_done = 1'b0 ;
-
-            // if (tx_en)
-               // STATE_NEXT = BIT5 ;
-            // else
-               // STATE_NEXT = BIT4 ;
-         // end   // BIT4
-         // //_____________________________
-
-
-         // BIT5 : begin
-
-            // TxD     = tx_data_buf[5] ;
-            // //tx_busy = 1'b1 ;
-            // //tx_done = 1'b0 ;
-
-            // if (tx_en)
-               // STATE_NEXT = BIT6 ;
-            // else
-               // STATE_NEXT = BIT5 ;
-
-         // end   // BIT5
-         // //_____________________________
-
-
-         // BIT6 : begin
-
-            // TxD     = tx_data_buf[6] ;
-            // //tx_busy = 1'b1 ;
-            // //tx_done = 1'b0 ;
-
-            // if (tx_en)
-               // STATE_NEXT = BIT7 ;
-            // else
-               // STATE_NEXT = BIT6 ;
-
-         // end   // BIT6
-         // //_____________________________
-
-
-         // BIT7 : begin
-
-            // TxD     = tx_data_buf[7] ;
-            // //tx_busy = 1'b1 ;
-            // //tx_done = 1'b0 ;
-
-            // if (tx_en)
-               // STATE_NEXT = STOP ;
-            // else
-               // STATE_NEXT = BIT7 ;
-         // end   // BIT7
-         // //_____________________________
-
-
-         // STOP : begin
-
-            // TxD     = 1'b1 ;            // assert STOP bit to '1' as requested by RS-232 protocol
-            // //tx_busy = 1'b1 ;
-            // //tx_done = 1'b1 ;            // assert a single clock-pulse tx_done when moving back to IDLE
-
-            // if (tx_en)
-               // //STATE_NEXT = IDLE ;
-               // STATE_NEXT = PAUSE ;
-            // else
-               // STATE_NEXT = STOP ;
-
-         // end   // STOP
-         // //_____________________________
-
-
-         // PAUSE : begin
-
-            // TxD     = 1'b1 ;
-
-            // if (tx_en)
-               // STATE_NEXT = IDLE ;
-            // else
-               // STATE_NEXT = PAUSE ;
-
-         // end   // PAUSE
-
-         // default : STATE_NEXT = IDLE ;   // **IMPORTANT: latches inferred otherwise !
-
-      // endcase
-
-   // end   // always
-
-// endmodule
+endmodule
 

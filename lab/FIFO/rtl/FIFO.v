@@ -41,12 +41,7 @@ module FIFO #(parameter integer WIDTH=10 )(
    wire pll_clk, pll_locked,UNCONNECTED;
    PLL  PLL_inst ( .CLK_IN(clk), .CLK_OUT_100(pll_clk), .CLK_OUT_200(UNCONNECTED), .LOCKED(pll_locked) ) ;    // 100 MHz output clock
    
-   /*-----------------------------------------
-   /    modulus-MAX 32-bit tick generator    /
-   ----------------------------------------*/
-   
-   TickCounter #( .MAX(330) ) TickCounter_inst1 ( .clk(pll_clk), .tick(WrEnable) );   // Wr_en 1 tick with  2.3 FSM send flag to conversion plus 1us for 10-bit transfer 
-   TickCounter #( .MAX(430) ) TickCounter_inst1 ( .clk(pll_clk), .tick(RrEnable) );   // Rd_en after another 1 us
+  
    
    
 
