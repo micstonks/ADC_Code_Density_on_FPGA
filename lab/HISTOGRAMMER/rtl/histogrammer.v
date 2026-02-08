@@ -82,8 +82,8 @@ module histogrammer (
 
          .clk(clk),
          .wen(wr_en_RAM ),
-         .addr_a(UNCONNECTED_ADDR), 
-         .addr_b(addr),              // address 0 to DEPTH-1 memory locations (10-bits for 1024 samples)
+         .addr_a(addr), 
+         .addr_b(UNCONNECTED_ADDR),              // address 0 to DEPTH-1 memory locations (10-bits for 1024 samples)
          .din_a(data_hist),
          .dout_a(rd_data_RAM), 
          .dout_b(UNCONNECTED_DATA)
