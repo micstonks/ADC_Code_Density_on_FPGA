@@ -3,10 +3,10 @@
  Authors -> Conti-Ragusa
 
 
-     __________________       _____ _____ _____ _____ _____ _____ _____ _____ _____ _____ ______ __________
-                       \_____/_____X_____X_____X_____X_____X_____X_____X_____X_____X_____X_____X      :
+     __________________       _____ _____ _____ _____ _____ _____ _____ _____ ______ __________
+                       \_____/_____X_____X_____X_____X_____X_____X_____X_____X_____X      :
  
-           IDLE        START  BIT0  BIT1  BIT2  BIT3  BIT4  BIT5  BIT6  BIT7  BIT8   BIT9 PARITY STOP  IDLE
+           IDLE        START  BIT0  BIT1  BIT2  BIT3  BIT4  BIT5  BIT6  BIT7   PARITY STOP  IDLE
 
 ------------------------------------------------------------------------------------------------------------*/
 
@@ -24,14 +24,13 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    input  wire tx_en,                            // baud-rate "tick", single clock-pulse asserted once every 1/(9.6 kHz)
    input  wire [WIDTH_DATA-1:0] tx_data,         // 2 byte to be transmitted over the serial lane
    output reg  TxD,                              // serial output stream
-   output reg  par,                              // parity output
    output reg [LENGTH_ADDR-1:0] addr             // 10bit for the address            
    ) ;
 
-  /*----------------------------
-  /   Address register         /
-  ----------------------------*/
-
+   ////////////////////////////
+  //   Address register     //
+ ////////////////////////////
+ 
 
    always @(posedge clk) begin
     if (rst) 
@@ -42,9 +41,9 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
   
 	 
 	 
-	 /*--------------------------------
-	    RAM istant
-	 --------------------------------*/
+	 /////////////////////
+	 //   RAM istant   //
+	 ///////////////////
 	 
 	 wire UNCONNECTED_1;
 	 
@@ -67,10 +66,9 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 
 
 
-
-    /*---------------------------------------
-	/   Splitting into 2- bytes for  reading /
-    ----------------------------------------*/
+    ////////////////////////////////////////////
+	//   Splitting into 2- bytes for  reading //
+    ///////////////////////////////////////////
 
    wire [7:0] addr_hi = {6'b0,  addr [9:8]};                  //BYTE0 for the addres using 2-byte
    wire [7:0] addr_lo =  addr [7:0];                          //BYTE1
@@ -96,16 +94,16 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
  
    
 
-    /*------------------
-   /   input buffers   /
-   ------------------*/
+    /////////////////////
+   //  input buffers  //
+  /////////////////////
    
    
    reg [7:0] tx_data_buf ;                      // **WARN: in hardware this becomes a bank of LATCHES !
    // reg [2:0] count, count_next ;
    reg [1:0] byte_index,byte_index_new;        // 2 bit bastano per 4 byte
    reg [2:0] STATE, STATE_NEXT ;
-
+   reg  par;                              // parity output
 
 
     /*--------------------------------------------
@@ -129,9 +127,9 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    
      
 
-     /*-----------------------
-    /   combinational part   /
-   ------------------------*/
+     //////////////////////////
+    //  combinational part  //
+   //////////////////////////
 
    always @(*) begin
 
