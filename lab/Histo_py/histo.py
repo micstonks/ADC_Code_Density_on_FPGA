@@ -1,46 +1,36 @@
-#
-# Minimal PyROOT script to test software installation.
-# Command line usage:
-#
-#   % cd Desktop/lae
-#   % python -i sample/ROOT/histo.py
-#
-#
-# Luca Pacher - pacher@to.infn.it
-# Spring 2020
-#
 
 
-## load ROOT components into Python 
-import ROOT
 
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+
+# Numero di trials
 Ntrials = 10000
 
-histo = ROOT.TH1F("histo","MC example",100,-5,5)
+# Genera dati normalmente distribuiti
+dati = np.random.normal(loc=0, scale=1, size=Ntrials)
 
-## keep track of Poisson errors on bin entries
-histo.Sumw2()
+# Crea istogramma
+n, bins, patches = plt.hist(dati, bins=100, range=(-5,5), density=True, alpha=0.6, color='b', edgecolor='black')
 
-## generate normally-distributed random values
-histo.FillRandom("gaus",Ntrials)
+# Fit gaussiano
+mu, std = norm.fit(dati)
 
-## normalize the distribution to unit area
-histo.Scale(1.0/histo.GetEntries())
+# Disegna la curva gaussiana sullo stesso grafico
+xmin, xmax = -5, 5
+x = np.linspace(xmin, xmax, 1000)
+p = norm.pdf(x, mu, std)
+plt.plot(x, p, 'r', linewidth=2)
 
-## draw the histogram with error bars
-histo.Draw("E")
+# Mostra parametri fit
+print(f"Fit mu = {mu:.4f}, sigma = {std:.4f}")
 
-## gaussian fit
-histo.Fit("gaus")
+# Mostra il grafico
+plt.xlabel("Valore")
+plt.ylabel("Densità")
+plt.title("MC example")
+plt.show()
 
-## display fit results
-ROOT.gStyle.SetOptFit(1)
-
-## create new ROOT file
-fout = ROOT.TFile("histo.root","RECREATE")
-
-## save the histogram to ROOT file
-histo.Write()
-
-## close the file handler
-fout.Close()
+# Salva i dati e l'istogramma in un file
+np.savez("histo_data.npz", bins=bins, counts=n)
