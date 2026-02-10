@@ -1,0 +1,10 @@
+0.7
+2020.2
+Oct 14 2022
+05:20:55
+D:/ADC_Code_Density_on_FPGA/lab/UART/bench/ClockGen.v,1770131866,systemVerilog,,,,ClockGen,,,D:/ADC_Code_Density_on_FPGA/lab/UART/work/sim/../../rtl,,,,,
+D:/ADC_Code_Density_on_FPGA/lab/UART/bench/glbl.v,1770131866,systemVerilog,,,,glbl,,,D:/ADC_Code_Density_on_FPGA/lab/UART/work/sim/../../rtl,,,,,
+D:/ADC_Code_Density_on_FPGA/lab/UART/bench/tb_uart_tx_FSM.v,1770198420,systemVerilog,,,,tb_uart_tx_FSM,,,D:/ADC_Code_Density_on_FPGA/lab/UART/work/sim/../../rtl,,,,,
+D:/ADC_Code_Density_on_FPGA/lab/UART/rtl/BaudGen.v,1770131866,systemVerilog,,,,BaudGen,,,D:/ADC_Code_Density_on_FPGA/lab/UART/work/sim/../../rtl,,,,,
+D:/ADC_Code_Density_on_FPGA/lab/UART/rtl/TickCounter.v,1770131866,systemVerilog,,,,TickCounter,,,D:/ADC_Code_Density_on_FPGA/lab/UART/work/sim/../../rtl,,,,,
+D:/ADC_Code_Density_on_FPGA/lab/UART/rtl/uart_tx_FSM.v,1770545336,systemVerilog,,,,uart_tx_FSM,,,D:/ADC_Code_Density_on_FPGA/lab/UART/work/sim/../../rtl,,,,,
