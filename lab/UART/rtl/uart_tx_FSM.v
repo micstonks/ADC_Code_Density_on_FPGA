@@ -20,9 +20,10 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 
    input  wire clk,                              // assume 100 MHz on-board system clock
    input  wire rst,                              // synchronous reset, active high
-   input  wire tx_start,                         // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
+   input  wire start,                         // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
    input  wire tx_en,                            // baud-rate "tick", single clock-pulse asserted once every 1/(9.6 kHz)
    input  wire [WIDTH_DATA-1:0] tx_data,         // 2 byte to be transmitted over the serial lane
+   
    output reg  TxD,                              // serial output stream
    output reg [LENGTH_ADDR-1:0] addr             // 10bit for the address            
    ) ;
@@ -73,6 +74,12 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 	  end // if
    
    end   //always
+   
+   reg tx_busy;
+   
+   wire tx_start;
+   
+   assign tx_start = ( start && ~tx_busy) ? 1'b1: 1'b0;
 
 
    /*--------------------------
@@ -99,7 +106,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    reg [7:0] tx_data_buf ;                      // **WARN: in hardware this becomes a bank of LATCHES !
 
    reg [2:0] STATE, STATE_NEXT ;
-   reg  par;                              // parity output
+   //reg  par;                              // parity output
 
 
     /*--------------------------------------------
@@ -113,6 +120,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
          STATE <= IDLE ;
 		 byte_index <= 2'b0;
 		 bit_cnt <= 3'd0;
+		 tx_busy <= 1'b0;
 		 
       end
 		 
@@ -141,6 +149,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 
             TxD     = 1'b1 ;
 			bit_cnt = 3'd0;
+			tx_busy = 1'b0;
 			
             if (tx_start)
                STATE_NEXT = LOAD ;               // move to LOAD and wait for the first Baud "tick" before starting the transaction
@@ -153,7 +162,8 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 
          LOAD : begin
 
-            TxD     = 1'b1 ;                    // the serial output is still in "idle"
+            tx_busy = 1'b1;
+			TxD     = 1'b1 ;                    // the serial output is still in "idle"
 			tx_data_buf = selected_byte;
 
             if (tx_en)                          // **IMPORTANT: move to next state only if a baud "tick" is present !
@@ -166,7 +176,8 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 
          START : begin
 
-            TxD     = 1'b0 ;                   // assert START bit to '0' as requested by RS-232 protocol
+            tx_busy = 1'b1;
+			TxD     = 1'b0 ;                   // assert START bit to '0' as requested by RS-232 protocol
 
             if (tx_en)
                STATE_NEXT = SEND_BYTE ;
@@ -178,7 +189,8 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
         
 		 SEND_BYTE: begin
 		 
-		    TxD = tx_data_buf[bit_cnt];   //WARNING! check timing
+		    tx_busy = 1'b1;
+			TxD = tx_data_buf[bit_cnt];   //WARNING! check timing
 			
 			
 			if (tx_en && bit_cnt == 3'd7)
@@ -268,7 +280,8 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
         
 		STOP : begin
 
-            TxD     = 1'b1 ;                 // assert STOP bit to '1' as requested by RS-232 protocol
+            tx_busy = 1'b1;
+			TxD     = 1'b1 ;                 // assert STOP bit to '1' as requested by RS-232 protocol
 			
 			if (byte_index == 2'd3)
 			
@@ -288,7 +301,8 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 
          PAUSE : begin
 
-            TxD     = 1'b1 ;
+            tx_busy = 1'b0;
+			TxD     = 1'b1 ;
 
             if (tx_en)
                STATE_NEXT = IDLE ;
