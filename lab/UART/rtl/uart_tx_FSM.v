@@ -66,8 +66,12 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    reg [2:0] bit_cnt;
    
    always @(posedge clk) begin
+   
+      if (rst | STATE == IDLE)
+	     
+		 bit_cnt <= 3'd0;
       
-	  if (STATE == SEND_BYTE && tx_en) begin
+	  else if (STATE == SEND_BYTE && tx_en) begin
 	     
 		 bit_cnt <= bit_cnt + 1'b1;
 		 
@@ -80,6 +84,36 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    wire tx_start;
    
    assign tx_start = ( start && ~tx_busy) ? 1'b1: 1'b0;
+   
+   
+   ////////////////
+   // Byte_index //
+   ///////////////
+   
+   always @(posedge clk) begin
+      
+	  if (rst) begin
+	  
+         byte_index <= 2'd0;
+      
+	  end   //if
+      
+	  else if (
+	  
+	  STATE == STOP && tx_en) begin
+	  
+         if (byte_index == 2'd3)
+	  
+            byte_index <= 2'd0;
+		 
+         else
+	  
+            byte_index <= byte_index + 1'b1;
+		 
+     end   //else if
+	 
+   end   //always
+
 
 
    /*--------------------------
@@ -118,8 +152,6 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
       if(rst) begin
 	  
          STATE <= IDLE ;
-		 byte_index <= 2'b0;
-		 bit_cnt <= 3'd0;
 		 tx_busy <= 1'b0;
 		 
       end
@@ -211,14 +243,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
             tx_busy = 1'b1;
 			TxD     = 1'b1 ;                 // assert STOP bit to '1' as requested by RS-232 protocol
 			
-			if (byte_index == 2'd3)
-			
-			   byte_index <= 2'd0;
-			   
-			else 
-			   
-			   byte_index <= byte_index + 1'b1 ;
-            
+			           
             if (tx_en)
               
                STATE_NEXT = PAUSE ;
