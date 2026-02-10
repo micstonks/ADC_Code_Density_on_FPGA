@@ -204,78 +204,6 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
           end //SEND_BYTE
 		 
 		 
-		    
-		
-            // if (tx_en) begin
-				
-               // byte_index = byte_index_new;
-                    // // seleziona il byte corretto in base a byte_index
-                  // case(byte_index)
-				  
-                     // 2'd0: tx_data_buf <= addr_hi;
-                     // 2'd1: tx_data_buf <= addr_lo;
-                     // 2'd2: tx_data_buf <= tx_data_hi;
-                     // 2'd3: tx_data_buf <= tx_data_lo;
-						
-                  // endcase
-
-                    // // qui va la logica dei bit seriali, conteggio ecc.
-
-                  // if (byte_index == 2'd3) 
-				  
-                     // byte_index_new = 2'd0;
-					 
-                  // else begin
-				  
-                     // byte_index_new <= byte_index + 1;
-					 // STATE <= PARITY;
-							 
-				  // end
-			
-            // end //if
-				
-		    // else
-			
-		       // STATE_NEXT = SEND_BYTE;
-				  
-        // end //SEND_BYTE
-	//________________________________
-	/* 		
-		SEND_BYTE0: begin
-		   
-             TxD = tx_data_buf[9-count];
-
-            if (tx_en) begin
-              if (count >= 4'b1001) begin
-                count_next = 4'b0000;        //force the count roll-over
-                STATE_NEXT = PARITY;
-              end
-            else begin
-                count_next = count + 4'b1; 
-                STATE_NEXT = SEND;          // stay in SEND
-            end 
-           end
-            else begin
-             count_next = count;
-             STATE_NEXT = SEND;
-             end
-          end    //SEND_BYTE0  
-   
-	*/
-    //________________________________
-
-
-         // PARITY : begin
-             // par = ^tx_data_buf;
-             // TxD = par ;                    // assert STOP bit to '1' as requested by RS-232 protocol
-
-            // if (tx_en)
-               // STATE_NEXT = STOP ;
-            // else
-               // STATE_NEXT = PARITY ;
-
-         // end    //PARITY
-   
    //_________________________________
         
 		STOP : begin
@@ -323,23 +251,4 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 endmodule
 
 
-
-
-	 
-	 
-	 // /////////////////////
-	 // //   RAM istant   //
-	 // ///////////////////
-	 
-	 // wire UNCONNECTED_1;
-	 
-	 // RAM #(.WIDTH(WIDTH_DATA),.DEPTH(1024)) ram_inst(
-	    // .clk(clk),
-		// .wen(UNCONNECTED_1),
-        // .addr_a(UNCONNECTED_1),
-        // .addr_b(addr), // nostro tizio 
-	    // .din_a(UNCONNECTED_1), 
-		// .dout_a(UNCONNECTED_1),
-		// .dout_b(tx_data)
-	 // );
 

@@ -73,8 +73,10 @@ SIM_TOP_MODULE := tb_uart_tx_FSM
 ## specify RTL sources by hand (more in general can be Verilog + VHDL code)
 ##
 
-RTL_VLOG_SOURCES := $(RTL_DIR)/uart_tx_FSM.v $(RTL_DIR)/TickCounter.v $(RTL_DIR)/BaudGen.v
-SIM_VLOG_SOURCES := $(SIM_DIR)/glbl.v $(SIM_DIR)/ClockGen.v
+RTL_VLOG_SOURCES := $(RTL_DIR)/uart_tx_FSM.v
+
+SIM_VLOG_SOURCES := $(SIM_DIR)/glbl.v $(SIM_DIR)/ClockGen.v $(SIM_DIR)/BaudGen.v $(SIM_DIR)/RAM.v
+SIM_VLOG_SOURCES += $(SIM_DIR)/TickCounter.v
 SIM_VLOG_SOURCES += $(SIM_DIR)/tb_uart_tx_FSM.v
 
 
