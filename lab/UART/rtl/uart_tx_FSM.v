@@ -215,7 +215,9 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 			
 			   byte_index <= 2'd0;
 			   
-			else byte_index <= 2'd0;
+			else 
+			   
+			   byte_index <= byte_index + 1'b1 ;
             
             if (tx_en)
               

@@ -107,7 +107,11 @@ module tb_uart_tx_FSM ;
 	  
 	  #521 start = 1'b1;
 	   
-	  #(1024*4*10*10414*10) $finish; 
+	  #(4*4*11*10414*10); 
+	  
+	  #500 start = 1'b0;
+	  
+	  $finish; 
 
    end   //initial   	  
 	  
