@@ -39,31 +39,6 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
         addr <= addr + 1'b1;                    // move to the next cell
      end
   
-	 
-	 
-	 /////////////////////
-	 //   RAM istant   //
-	 ///////////////////
-	 
-	 wire UNCONNECTED_1;
-	 
-	 RAM #(.WIDTH(WIDTH_DATA),.DEPTH(1024)) ram_inst(
-	    .clk(clk),
-		.wen(UNCONNECTED_1),
-        .addr_a(UNCONNECTED_1),
-        .addr_b(addr), // nostro tizio 
-	    .din_a(UNCONNECTED_1), 
-		.dout_a(UNCONNECTED_1),
-		.dout_b(tx_data)
-	 );
-
-
-
-
-
-
-
-
 
 
     ////////////////////////////////////////////
@@ -75,7 +50,29 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
        
    wire [7:0] tx_data_hi = tx_data[WIDTH_DATA-1:8];           //BYTE2
    wire [7:0] tx_data_lo = tx_data[7:0];                     //BYTE3 UART works at 8bit,for the data using 2-byte
+   
+   reg [1:0] byte_index;       
 
+   wire [7:0] selected_byte;
+   
+   assign selected_byte = 
+      
+	  (byte_index == 2'd0) ? addr_hi :
+	  (byte_index == 2'd1) ? addr_lo :
+	  (byte_index == 2'd2) ? tx_data_hi :
+	  tx_data_lo;
+	  
+   reg [2:0] bit_cnt;
+   
+   always @(posedge clk) begin
+      
+	  if (STATE == SEND_BYTE && tx_en) begin
+	     
+		 bit_cnt <= bit_cnt + 1'b1;
+		 
+	  end // if
+   
+   end   //always
 
 
    /*--------------------------
@@ -87,9 +84,9 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    parameter [2:0] LOAD        = 3'h1 ;
    parameter [2:0] START       = 3'h2 ;
    parameter [2:0] SEND_BYTE   = 3'h3 ;           //SEND BYTE 
-   parameter [2:0] PARITY      = 3'h4 ;
-   parameter [2:0] STOP        = 3'h5 ;  
-   parameter [2:0] PAUSE       = 3'h6 ;           // optionally wait for another baud period before moving to IDLE
+   //parameter [2:0] PARITY      = 3'h4 ;
+   parameter [2:0] STOP        = 3'h4 ;  
+   parameter [2:0] PAUSE       = 3'h5 ;           // optionally wait for another baud period before moving to IDLE
 
  
    
@@ -100,8 +97,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    
    
    reg [7:0] tx_data_buf ;                      // **WARN: in hardware this becomes a bank of LATCHES !
-   // reg [2:0] count, count_next ;
-   reg [1:0] byte_index,byte_index_new;        // 2 bit bastano per 4 byte
+
    reg [2:0] STATE, STATE_NEXT ;
    reg  par;                              // parity output
 
@@ -112,15 +108,17 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 
    always @(posedge clk) begin               // infer a bank of FlipFlops
 
-      if(rst)begin
+      if(rst) begin
+	  
          STATE <= IDLE ;
-		/*  count <= 3'b0;
-		 count_next <= 3'b0; */
 		 byte_index <= 2'b0;
-		 end
+		 bit_cnt <= 3'd0;
+		 
+      end
+		 
       else begin
          STATE <= STATE_NEXT ;		 
-	    /*  count <= count_next; */
+	
 	  end
    end   // always
    
@@ -130,6 +128,8 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
      //////////////////////////
     //  combinational part  //
    //////////////////////////
+   
+   integer i;
 
    always @(*) begin
 
@@ -140,6 +140,8 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
          IDLE : begin
 
             TxD     = 1'b1 ;
+			bit_cnt = 3'd0;
+			
             if (tx_start)
                STATE_NEXT = LOAD ;               // move to LOAD and wait for the first Baud "tick" before starting the transaction
             else
@@ -152,7 +154,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
          LOAD : begin
 
             TxD     = 1'b1 ;                    // the serial output is still in "idle"
-            tx_data_buf[9:0] = tx_data[9:0] ;   // LATCHES here !
+			tx_data_buf = selected_byte;
 
             if (tx_en)                          // **IMPORTANT: move to next state only if a baud "tick" is present !
                STATE_NEXT = START ;
@@ -174,31 +176,57 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
          end    //START
    //_________________________________
         
-		SEND_BYTE: begin
-                if (tx_en) begin
-				byte_index = byte_index_new;
-                    // seleziona il byte corretto in base a byte_index
-                    case(byte_index)
-                        2'd0: tx_data_buf <= addr_hi;
-                        2'd1: tx_data_buf <= addr_lo;
-                        2'd2: tx_data_buf <= tx_data_hi;
-                        2'd3: tx_data_buf <= tx_data_lo;
-                    endcase
-
-                    // qui va la logica dei bit seriali, conteggio ecc.
-
-                        if (byte_index == 2'd3) 
-                           byte_index_new = 2'd0;
-                        else begin
-                            byte_index_new <= byte_index + 1;
-							 STATE <= PARITY;
-							 end
+		 SEND_BYTE: begin
+		 
+		    TxD = tx_data_buf[bit_cnt];   //WARNING! check timing
 			
-                end //if
+			
+			if (tx_en && bit_cnt == 3'd7)
+			
+			   STATE_NEXT = STOP ;
+			
+			else 
+			   
+			   STATE_NEXT = SEND_BYTE;
+			   
+          end //SEND_BYTE
+		 
+		 
+		    
+		
+            // if (tx_en) begin
 				
-				 else
-				  STATE_NEXT = SEND_BYTE;
-            end //SEND_BYTE
+               // byte_index = byte_index_new;
+                    // // seleziona il byte corretto in base a byte_index
+                  // case(byte_index)
+				  
+                     // 2'd0: tx_data_buf <= addr_hi;
+                     // 2'd1: tx_data_buf <= addr_lo;
+                     // 2'd2: tx_data_buf <= tx_data_hi;
+                     // 2'd3: tx_data_buf <= tx_data_lo;
+						
+                  // endcase
+
+                    // // qui va la logica dei bit seriali, conteggio ecc.
+
+                  // if (byte_index == 2'd3) 
+				  
+                     // byte_index_new = 2'd0;
+					 
+                  // else begin
+				  
+                     // byte_index_new <= byte_index + 1;
+					 // STATE <= PARITY;
+							 
+				  // end
+			
+            // end //if
+				
+		    // else
+			
+		       // STATE_NEXT = SEND_BYTE;
+				  
+        // end //SEND_BYTE
 	//________________________________
 	/* 		
 		SEND_BYTE0: begin
@@ -225,22 +253,28 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
     //________________________________
 
 
-         PARITY : begin
-             par = ^tx_data_buf;
-             TxD = par ;                    // assert STOP bit to '1' as requested by RS-232 protocol
+         // PARITY : begin
+             // par = ^tx_data_buf;
+             // TxD = par ;                    // assert STOP bit to '1' as requested by RS-232 protocol
 
-            if (tx_en)
-               STATE_NEXT = STOP ;
-            else
-               STATE_NEXT = PARITY ;
+            // if (tx_en)
+               // STATE_NEXT = STOP ;
+            // else
+               // STATE_NEXT = PARITY ;
 
-         end    //PARITY
+         // end    //PARITY
    
    //_________________________________
         
 		STOP : begin
 
             TxD     = 1'b1 ;                 // assert STOP bit to '1' as requested by RS-232 protocol
+			
+			if (byte_index == 2'd3)
+			
+			   byte_index <= 2'd0;
+			   
+			else byte_index <= 2'd0;
             
             if (tx_en)
               
@@ -268,6 +302,30 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
       endcase
 
    end   // always
+   
+
+
 
 endmodule
+
+
+
+
+	 
+	 
+	 // /////////////////////
+	 // //   RAM istant   //
+	 // ///////////////////
+	 
+	 // wire UNCONNECTED_1;
+	 
+	 // RAM #(.WIDTH(WIDTH_DATA),.DEPTH(1024)) ram_inst(
+	    // .clk(clk),
+		// .wen(UNCONNECTED_1),
+        // .addr_a(UNCONNECTED_1),
+        // .addr_b(addr), // nostro tizio 
+	    // .din_a(UNCONNECTED_1), 
+		// .dout_a(UNCONNECTED_1),
+		// .dout_b(tx_data)
+	 // );
 
