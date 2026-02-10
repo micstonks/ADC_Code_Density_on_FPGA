@@ -99,7 +99,7 @@ SIM_TOP_MODULE := tb_SPI_master
 #RTL_VLOG_SOURCES := $(RTL_DIR)/uart_tx_FSM.v $(RTL_DIR)/TickCounter.v $(RTL_DIR)/BaudGen.v
 RTL_VLOG_SOURCES := $(RTL_DIR)/SPI_master.v $(RTL_DIR)/TickCounter.v
 
-SIM_VLOG_SOURCES := $(SIM_DIR)/glbl.v $(SIM_DIR)/ClockGen.v $(SIM_DIR)/tb_SPI_master.v
+SIM_VLOG_SOURCES := $(SIM_DIR)/glbl.v $(SIM_DIR)/ClockGen.v $(SIM_DIR)/tb_SPI_master.v $(SIM_DIR)/ADC.v
 #SIM_VLOG_SOURCES += $(SIM_DIR)/tb_uart_tx_FSM.v
 
 

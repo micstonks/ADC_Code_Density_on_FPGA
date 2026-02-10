@@ -8,59 +8,76 @@
 `timescale 1ns / 100ps
 
 
-module tb_SPI_master (parameter integer WIDTH, parameter real t_power_up, parameter real t_conversion)(
+module ADC #(parameter integer WIDTH = 10, parameter real t_power_up = 1500, parameter real t_conversion = 2300)(
    
    input wire CONVST,
    input wire sclk,
    
-   output reg MISO
+   output wire MISO
    
    );
+   
+   reg powered_up = 1'b0;
+
+   reg [WIDTH-1:0] shift_reg ;
+
+   reg miso_drv;
+   reg [$clog2(WIDTH):0] bit_cnt;
+   reg data_ready ;
+
+   assign MISO = data_ready ? miso_drv : 1'bz;
+
    
    //////////////
    // Power-up logic //
    //////////////
    
-   reg powered_up = 1'b0;
-   
    initial begin
-      
-	  MISO = 1'b0;  
-	  #(t_power_up);
-	  powered_up = 1;
-	  
-   end   //initial   
    
-   
-   reg [WIDTH-1:0] conversion_result;
-   reg conversion_done = 1'b0;
-
-   always @(posedge CONVST) begin
-   
-      if (!powered_up) begin
+      powered_up = 1'b0;
+      data_ready = 1'b0;
+      miso_drv   = 1'b0;
+      #(t_power_up);
+      powered_up = 1'b1;
 	  
-         conversion_done <= 1'b0;
-		 
-      end   //if
-	  
-	  else begin
-	  
-         conversion_done <= 1'b0;
-
-         // conversion delay
-         #(t_conversion);   // 2.3 µs conversion time
-
-         // generate ADC data (behavioral)
-         conversion_result <= $random;
-         conversion_done   <= 1'b1;
-		 
-      end   //else
    end
    
+      //////////////
+   // Conversion logic //
+   //////////////
+   
+   
+   always @(negedge CONVST) begin
+   
+      if (~powered_up)
+         $error("ADC: CONVST toggled before power-up complete");
 
+	  shift_reg = $random;
+	  bit_cnt <= WIDTH;	  
+	  data_ready = 1'b0;
+	  $display("[%0t ns] ADC Data measured: %b", $time, shift_reg);
+	  
 
+	  
+   end
+   
+   always @(posedge sclk) begin
+   
+	     
+         data_ready <=1'b1;
+         miso_drv <= shift_reg[WIDTH-1];
+         shift_reg <= {shift_reg[WIDTH-2:0], 1'b0};
+		 bit_cnt <= bit_cnt - 1'b1;
+		 
+   end
+   
+   always @(negedge sclk) begin
+      
+	  if (bit_cnt == 0)
+	  
+	     data_ready <= 1'b0;
+	  
+   end 
 
-
-
-
+  
 endmodule 
