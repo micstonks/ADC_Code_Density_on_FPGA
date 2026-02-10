@@ -74,10 +74,10 @@ LOG_DIR  := log
 ##########################################
 
 ## specify top-level RTL (this is used for implementation and firmware installation)
-RTL_TOP_MODULE := histogrammer
+RTL_TOP_MODULE := Histogrammer
 
 ## specify top-level testbench module (this is the target module for the xelab executable)
-SIM_TOP_MODULE := tb_histogrammer
+SIM_TOP_MODULE := tb_Histogrammer
 
 ##
 ## **NOTE
@@ -93,9 +93,10 @@ SIM_TOP_MODULE := tb_histogrammer
 ##
 
 #RTL_VLOG_SOURCES := $(RTL_DIR)/CounterBCD.v $(RTL_DIR)/CounterBCD_Ndigit.v
-RTL_VLOG_SOURCES := $(RTL_DIR)/histogrammer.v $(RTL_DIR)/histogrammer.v $(RTL_DIR)/RAM.v $(RTL_DIR)/FIFO.v
+RTL_VLOG_SOURCES := $(RTL_DIR)/Histogrammer.v
 
-SIM_VLOG_SOURCES := $(SIM_DIR)/glbl.v $(SIM_DIR)/ClockGen.v $(SIM_DIR)/tb_histogrammer.v
+SIM_VLOG_SOURCES := $(SIM_DIR)/glbl.v $(SIM_DIR)/ClockGen.v $(SIM_DIR)/tb_Histogrammer.v
+SIM_VLOG_SOURCES += $(SIM_DIR)/FIFO.v $(SIM_DIR)/RAM.v $(SIM_DIR)/TickCounter.v
 
 
 ## if no VHDL sources, you can either comment the below variables or just leave them empty
