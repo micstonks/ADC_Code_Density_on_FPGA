@@ -123,7 +123,7 @@ module main(
            .rd_data_FIFO(Rd_Data_FIFO),     // rd_data by FIFO
            .rd_data_RAM(rd_data_RAM),
            .empty(empty_FIFO),                              // empty FIFO
-           .full(full_FIFO),                              // fully FIFO
+           .full(full_FIFO),                              // full FIFO
    
             //output
            .rd_en_FIFO(rd_en_FIFO),             // Histogrammer check the reading for the FIFO
