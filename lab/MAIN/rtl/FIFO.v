@@ -33,6 +33,9 @@ module FIFO #(parameter integer WIDTH=10 )(
    ) ;
 
 
+
+  
+   
    
 
    /*-------------------------------
@@ -41,7 +44,7 @@ module FIFO #(parameter integer WIDTH=10 )(
 
    // **NOTE: the actual FIFO implementation is placed in ../cores/FIFO_WIDTH8_DEPTH32/FIFO_WIDTH8_DEPTH32_sim_netlist.v
 
-   FIFO_WIDTH10_DEPTH32   FIFO_WIDTH10_DEPTH32_inst (
+   FIFO_WIDTH10_DEPTH16   FIFO_WIDTH10_DEPTH16_inst (
 
       .clk    (                   clk ),
       .srst   (                 Reset ),

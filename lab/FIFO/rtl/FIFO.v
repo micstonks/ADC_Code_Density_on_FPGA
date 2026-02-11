@@ -33,14 +33,7 @@ module FIFO #(parameter integer WIDTH=10 )(
    ) ;
 
 
-   /*-------------------------------------
-   /    PLL IP core (Clocking Wizard)    /
-   ------------------------------------*/
 
-   // PLL signals
-   wire pll_clk, pll_locked,UNCONNECTED;
-   PLL  PLL_inst ( .CLK_IN(clk), .CLK_OUT_100(pll_clk), .CLK_OUT_200(UNCONNECTED), .LOCKED(pll_locked) ) ;    // 100 MHz output clock
-   
   
    
    
@@ -51,10 +44,10 @@ module FIFO #(parameter integer WIDTH=10 )(
 
    // **NOTE: the actual FIFO implementation is placed in ../cores/FIFO_WIDTH8_DEPTH32/FIFO_WIDTH8_DEPTH32_sim_netlist.v
 
-   FIFO_WIDTH10_DEPTH32   FIFO_WIDTH10_DEPTH32_inst (
+   FIFO_WIDTH10_DEPTH16   FIFO_WIDTH10_DEPTH16_inst (
 
-      .clk    (               pll_clk ),
-      .srst   (  Reset| (~pll_locked) ),
+      .clk    (                   clk ),
+      .srst   (                 Reset ),
       .din    (     WrData[WIDTH-1:0] ),
       .wr_en  (              WrEnable ),
       .rd_en  (              RdEnable ),

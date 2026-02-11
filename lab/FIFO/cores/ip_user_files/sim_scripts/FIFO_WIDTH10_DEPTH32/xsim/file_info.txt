@@ -1,2 +1,0 @@
-FIFO_WIDTH10_DEPTH32.v,verilog,xil_defaultlib,../../../../FIFO_WIDTH10_DEPTH32/sim/FIFO_WIDTH10_DEPTH32.v,
-glbl.v,Verilog,xil_defaultlib,glbl.v

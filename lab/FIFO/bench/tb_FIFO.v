@@ -9,7 +9,7 @@
 
 
 `define FIFO_WIDTH  10   // useless in this testbench, just to remind us that if needed we can also use macros in Verilog ...
-`define FIFO_DEPTH  32
+`define FIFO_DEPTH  16
 
 
 `timescale 1ns / 100ps
@@ -121,16 +121,7 @@ module tb_FIFO ;
       end   // for
 
 
-      // #4000   // stop reading for 4us, meanwhile the FIFO goes FULL !
-
-      // for (rd = 0; rd < 70; rd = rd+1) begin
-
-         // #100
-
-         // @(posedge clk100) rd_enable = 1'b1 ;
-         // @(posedge clk100) rd_enable = 1'b0 ;
-      // end
-
+      
       #8000 $finish ;
 
    end   // initial
