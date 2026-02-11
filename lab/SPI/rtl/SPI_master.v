@@ -13,7 +13,6 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    input    wire   MISO,
    //input    wire  start,
    
-   output   reg   busy,                     // Transaction in progress
    output   wire   CONVST,
    output   reg   D_en,                     // Data Valid pulse (1 clock cycle)
    output   reg   [WIDTH - 1:0] pdo,   // Byte received on MISO
@@ -74,6 +73,8 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    //              the "in" side captures data on the trailing edge of clock
    assign w_CPHA  = (SPI_MODE == 1) | (SPI_MODE == 3);
    
+   
+   reg   busy;                     // Transaction in progress
    reg   r_sclk;
    assign sclk = (adc_ready) ? r_sclk : 1'b0;
    

@@ -21,6 +21,7 @@ module main(
 	input wire clk,
 	input wire rst,
     input wire MISO,            //ADC -> SPI
+	input wire start,           //ADD this signal!!! it's the slide switch that starts uart
 
     output wire sclk,           //SPI -> ADC
 	output wire convst,         //SPI -> ADC
@@ -37,7 +38,7 @@ module main(
    //PLL signal
    wire pll_clk, pll_locked;  
    wire pll_rst;                                          //PLL
-   wire UNCONNECTED;
+  
    wire wr_en_FIFO;                                       // enable SPI -> FIFO (D_en/wr_en)
    wire [`WIDTH_FIFO:0] wr_data_FIFO;                     // data SPI -> FIFO   (ADC_data/wr_data)
    wire empty_FIFO, full_FIFO;                            // flag FIFO
@@ -53,7 +54,7 @@ module main(
    wire start;                                            // start UART
    
    
-   assign pll_rst= rst | ((~pll_locked));               
+   assign pll_rst= rst | (~pll_locked);               
   
    
 
@@ -78,7 +79,6 @@ module main(
          .MISO(MISO),
 
          // output
-         .busy(UNCONNECTED),                     // Transaction in progress
          .CONVST(CONVST),
          .D_en(wr_en_FIFO),                      // Data Valid pulse (1 clock cycle)
          .ADC_Data(wr_data_FIFO),                // Byte received on MISO
