@@ -76,7 +76,11 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    
    reg   busy;                     // Transaction in progress
    reg   r_sclk;
+   
    assign sclk = (adc_ready) ? r_sclk : 1'b0;
+   // assign sclk = (stop)      ? 1'b0   :
+                 // (adc_ready) ? r_sclk : 
+				               // 1'b0   ;
    
    wire next_sclk = ~r_sclk;
    wire sclk_rise = (spi_tick && ~r_sclk && next_sclk);
@@ -102,10 +106,12 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    reg convst_pwr = 1'b0;
    
    
+   
+   assign CONVST = (adc_ready) ? convst_fsm : convst_pwr;
   
-   assign CONVST = (stop)      ?   1'b0     :
-                   (adc_ready) ? convst_fsm :
-				   convst_pwr               ;
+   // assign CONVST = (stop)      ?   1'b0     :
+                   // (adc_ready) ? convst_fsm :
+				   // convst_pwr               ;
    
    
    ///////////////////////////
@@ -154,6 +160,10 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
       else if (~adc_ready)
 	  
 	     STATE <= IDLE ;
+		 
+      else if (stop)
+	  
+	     STATE <= IDLE;
 	  
 	  else
          STATE <= STATE_NEXT ;

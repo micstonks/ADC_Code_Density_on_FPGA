@@ -55,7 +55,7 @@ module ADC #(parameter integer WIDTH = 10, parameter real t_power_up = 1500, par
       if (~powered_up)
          $error("ADC: CONVST toggled before power-up complete");
 
-	  shift_reg = <= conv_counter;
+	  shift_reg <= conv_counter;
 	  conv_counter <= conv_counter + 1'b1;
 	  
 	  bit_cnt <= WIDTH;	  
