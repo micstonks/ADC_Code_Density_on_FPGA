@@ -29,6 +29,8 @@
 #set_units -capacitance   pF
 
 
+
+
 #############################################
 ##   physical constraints (port mapping)   ##
 #############################################
@@ -36,17 +38,24 @@
 ## on-board 100 MHz clock
 set_property -dict { PACKAGE_PIN E3 IOSTANDARD LVCMOS33 } [get_ports clk]
 
+
+## slide switches for rst and stop
+set_property -dict { PACKAGE_PIN A8   IOSTANDARD LVCMOS33 } [get_ports rst] ;   ## SW0
+set_property -dict { PACKAGE_PIN C11  IOSTANDARD LVCMOS33 } [get_ports stop] ;   ## SW1
+
 ## hard-wired TxD pin (FPGA pin already connected by Digilent to USB/UART bridge on the board)
-set_property -dict { PACKAGE_PIN D10  IOSTANDARD LVCMOS33 } [get_ports TxD]
+set_property -dict { PACKAGE_PIN D10  IOSTANDARD LVCMOS33 } [get_ports serial_output]
 
-## probe TxD at the oscilloscope on CH1
-set_property -dict { PACKAGE_PIN G13  IOSTANDARD LVCMOS33 } [get_ports txd_probe] ;  ## JA1
+## serial data in from ADC: MISO
+set_property -dict { PACKAGE_PIN G13  IOSTANDARD LVCMOS33 } [get_ports MISO] ;  ## JA1
 
-## use UART "busy" signal as trigger on CH2
-set_property -dict { PACKAGE_PIN B11  IOSTANDARD LVCMOS33 } [get_ports busy_probe] ;   ## JA2
+## serial clock sclk
+set_property -dict { PACKAGE_PIN B11  IOSTANDARD LVCMOS33 } [get_ports sclk] ;   ## JA2
 
-## **EXTRA: uart_ascii select pin (comment-out for the uart_xadc design instead)
-set_property -dict { PACKAGE_PIN A8  IOSTANDARD LVCMOS33 } [get_ports select ] ;   ## SW0
+
+## convst signal to ADC
+set_property -dict { PACKAGE_PIN A11  IOSTANDARD LVCMOS33 } [get_ports convst] ;   ## JA3
+
 
 
 ################################
