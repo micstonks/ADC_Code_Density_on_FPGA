@@ -95,8 +95,8 @@ SIM_TOP_MODULE := tb_Histogrammer
 #RTL_VLOG_SOURCES := $(RTL_DIR)/CounterBCD.v $(RTL_DIR)/CounterBCD_Ndigit.v
 RTL_VLOG_SOURCES := $(RTL_DIR)/Histogrammer.v
 
-SIM_VLOG_SOURCES := $(SIM_DIR)/glbl.v $(SIM_DIR)/ClockGen.v $(SIM_DIR)/tb_Histogrammer.v
-SIM_VLOG_SOURCES += $(SIM_DIR)/FIFO.v $(SIM_DIR)/RAM.v $(SIM_DIR)/TickCounter.v
+SIM_VLOG_SOURCES := $(SIM_DIR)/glbl.v $(SIM_DIR)/ClockGen.v $(SIM_DIR)/tb_Histogrammer.v $(SIM_DIR)/ADC.v
+SIM_VLOG_SOURCES += $(SIM_DIR)/FIFO.v $(SIM_DIR)/RAM.v $(SIM_DIR)/TickCounter.v $(SIM_DIR)/SPI_master.v
 
 
 ## if no VHDL sources, you can either comment the below variables or just leave them empty

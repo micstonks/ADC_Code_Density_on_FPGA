@@ -31,7 +31,39 @@ module tb_Histogrammer ;
    wire tick;
 
    TickCounter   #( .MAX(300) )  TickCounter_inst ( .clk(clk100), .tick(tick) ) ;   
-     
+   
+   
+   /////////////////////////////////
+   //   Generating FIFO data  //
+   /////////////////////////////////   
+   
+   reg [`WIDTH_FIFO-1 :0] write_data_FIFO ;
+   
+   reg write_enable_FIFO;
+   
+   always @(posedge clk100) begin
+   
+      if (rst)
+	  
+         write_data_FIFO <= {`WIDTH_FIFO{1'b0}};
+		 
+      else if (tick)
+	  
+         write_data_FIFO <= write_data_FIFO + 1'b1;
+		 
+   end
+   
+   always @(posedge clk100) begin
+   
+      if (rst)
+	  
+         write_enable_FIFO <= 1'b0;
+		 
+      else 
+	  
+         write_enable_FIFO <= tick;
+		 
+   end   
 
 
 
@@ -40,18 +72,6 @@ module tb_Histogrammer ;
    ///////////////////////////
 
    reg rst  ;
-   
-   wire miso;    
-   
-   reg stop;
-   
-   wire CONVST;
-   
-   wire sclk; 
-   
-   wire D_en ;
-   
-   wire [`WIDTH_FIFO - 1:0]   pdo ;   //parallel data out
    
    wire [`WIDTH_FIFO-1:0] rd_data_FIFO;    
    
@@ -115,30 +135,14 @@ module tb_Histogrammer ;
    
       .clk(clk100), 
 	  .Reset(rst), 
-	  .WrEnable(D_en),
-	  .WrData(pdo),
+	  .WrEnable(write_enable_FIFO),
+	  .WrData(write_data_FIFO),
 	  .RdEnable(read_enable_FIFO),
 	  .RdData(rd_data_FIFO),
 	  .Full(full),
 	  .Empty(empty)
 	  
 	  ) ;	  
-	  
-   
-   SPI_master   #( .SPI_MODE(1), .WIDTH(`WIDTH_FIFO) )   SPi_master_inst  (
-
-      .clk(clk100), 
-	  .rst(rst), 
-	  .MISO(miso), 
-	  .stop(stop), 
-	  .CONVST(CONVST), 
-	  .D_en(D_en), 
-	  .pdo(pdo), 
-	  .sclk(sclk)
-	  
-	  ) ;
-	  
-    ADC #( .WIDTH(`WIDTH_FIFO), .t_power_up(1500), .t_conversion(2300)) ADC_inst ( .CONVST(CONVST), .sclk(sclk), .MISO(miso) ) ;
 
 
    ///////////////////////
@@ -150,20 +154,23 @@ module tb_Histogrammer ;
    initial begin
       
 	  rst = 1'b1;
-	  stop = 1'b0;
       #500 rst = 1'b0;
 	  
-	  #(3000*5)
+	  #(3000*1024)
 
       for (i = 0; i < `DEPTH_RAM; i = i + 1) begin
+	  
+         if (RAM_inst.ram[i] !== 16'd1) begin
 		 
-            $display("RAM[%0b] = %0d", i, RAM_inst.ram[i]);          
+            $display("Error: RAM[%0d] = %0d (expected 1)", i, RAM_inst.ram[i]);
+            
+         end   //if
 		 
       end   //for
 	  
-	  #500 stop = 1'b1;
+	  $display("Test passed!");
 	  
-	  #(3000)$finish;
+	  #(3000*1024)$finish;
       
 	  
    end
