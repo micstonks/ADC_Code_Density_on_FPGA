@@ -88,4 +88,4 @@ with open("histo_adc.txt", "w") as f:
     for i, v in enumerate(histo):
         f.write(f"{i}\t{v}\n")
 
-print("File histo_adc.txt salvato")
+print("File histo_adc.txt ")
