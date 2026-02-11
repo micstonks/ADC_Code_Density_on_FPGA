@@ -65,17 +65,19 @@ LOG_DIR  := log
 ##########################################
 
 ## specify top-level RTL (this is used for implementation and firmware installation)
-RTL_TOP_MODULE := uart_tx_FSM
+RTL_TOP_MODULE := MAIN
 ## specify top-level testbench module (this is the target module for the xelab executable)
-SIM_TOP_MODULE := tb_uart_tx_FSM
+SIM_TOP_MODULE := tb_MAIN
 
 ##
 ## specify RTL sources by hand (more in general can be Verilog + VHDL code)
 ##
 
-RTL_VLOG_SOURCES := $(RTL_DIR)/uart_tx_FSM.v $(RTL_DIR)/TickCounter.v $(RTL_DIR)/BaudGen.v
-SIM_VLOG_SOURCES := $(SIM_DIR)/glbl.v $(SIM_DIR)/ClockGen.v
-SIM_VLOG_SOURCES += $(SIM_DIR)/tb_uart_tx_FSM.v
+RTL_VLOG_SOURCES := $(RTL_DIR)/MAIN.v $(RTL_DIR)/SPI_master.v $(RTL_DIR)/BaudGen.v $(RTL_DIR)/FIFO.v $(RTL_DIR)/uart_tx_FSM.v
+RTL_VLOG_SOURCES += $(RTL_DIR)/Histogrammer.v $(RTL_DIR)/RAM.v $(RTL_DIR)/TickCounter.v
+
+SIM_VLOG_SOURCES := $(SIM_DIR)/glbl.v $(SIM_DIR)/ClockGen.v $(SIM_DIR)/ADC.v
+SIM_VLOG_SOURCES += $(SIM_DIR)/tb_MAIN.v
 
 
 ## if no VHDL sources, you can either comment the below variables or just leave them empty

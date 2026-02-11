@@ -11,17 +11,20 @@
 
 
 `define WIDTH_FIFO 10
-`define DEPTH_FIFO 32
+`define DEPTH_FIFO 4
 `define WIDTH_RAM  16
 `define DEPTH_RAM  1024
 
 
-module main(
+`timescale 1ns / 100ps
+
+module MAIN (
     
 	input wire clk,
 	input wire rst,
     input wire MISO,            //ADC -> SPI
-	input wire start,           //ADD this signal!!! it's the slide switch that starts uart
+	input wire start,       
+    input wire stop,    
 
     output wire sclk,           //SPI -> ADC
 	output wire convst,         //SPI -> ADC
@@ -40,7 +43,7 @@ module main(
    wire pll_rst;                                          //PLL
   
    wire wr_en_FIFO;                                       // enable SPI -> FIFO (D_en/wr_en)
-   wire [`WIDTH_FIFO:0] wr_data_FIFO;                     // data SPI -> FIFO   (ADC_data/wr_data)
+   wire [`WIDTH_FIFO - 1:0] wr_data_FIFO;                     // data SPI -> FIFO   (ADC_data/wr_data)
    wire empty_FIFO, full_FIFO;                            // flag FIFO
    wire rd_en_FIFO;                                       // histogrammer -> FIFO
    wire [`WIDTH_FIFO-1:0] Rd_Data_FIFO;                   // Read data FIFO 
@@ -51,7 +54,7 @@ module main(
    wire [`WIDTH_RAM - 1:0] data_hist;                     // DATA count hist-> RAM  (data_hist/din_a)                 
    wire wr_en_RAM;                                        // enable HIST -> RAM (wr_en_RAM/wen)
    wire baud_tick;                                        // baud_tick UART
-   wire start;                                            // start UART
+ 
    
    
    assign pll_rst= rst | (~pll_locked);               
@@ -71,17 +74,18 @@ module main(
    /////////////////////////////
 
 
-   SPI_master   #(.SPI_MODE(1), .WIDTH (`WIDTH_FIFO)) SPI_inst (   //this SPI module talks with WIDTH-bit words
+   SPI_master   #(.SPI_MODE(1), .WIDTH (`WIDTH_FIFO), .POWERUP_CYCLES(150), .CONV_CYCLES(230) ) SPI_inst (   //this SPI module talks with WIDTH-bit words
    
          //input
          .clk(pll_clk),                           // FPGA 100 MHz Clock
          .rst(pll_rst),                           // to map on FPGA Reset
          .MISO(MISO),
+		 .stop(stop),
 
          // output
          .CONVST(CONVST),
          .D_en(wr_en_FIFO),                      // Data Valid pulse (1 clock cycle)
-         .ADC_Data(wr_data_FIFO),                // Byte received on MISO
+         .pdo(wr_data_FIFO),                // Byte received on MISO
          .sclk(sclk)
    
    ) ;
@@ -115,13 +119,13 @@ module main(
 
 
 
-   histogrammer histogrammer_inst(
+   Histogrammer Histogrammer_inst(
            
 		   //input 
            .clk(pll_clk),                       // assume 100 MHz on-board system clock
            .rst(pll_rst),                       // synchronous reset, active high 
            .rd_data_FIFO(Rd_Data_FIFO),     // rd_data by FIFO
-           .rd_data_RAM(rd_data_RAM),
+           .rd_data_RAM(rd_data_RAM_HISTO),
            .empty(empty_FIFO),                              // empty FIFO
            .full(full_FIFO),                              // full FIFO
    
@@ -173,7 +177,7 @@ module main(
 		 //input 
          .clk(pll_clk),                          // assume 100 MHz on-board system clock
          .rst(pll_rst),                          // synchronous reset, active high
-         .tx_start(start),                         // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
+         .start(start),                         // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
          .tx_en(baud_tick),                      // baud-rate "tick", single clock-pulse asserted once every 1/(9.6 kHz)
          .tx_data(rd_data_RAM_UART),             // 2 byte to be transmitted over the serial lane
          

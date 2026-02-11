@@ -5,19 +5,19 @@
 
 `timescale 1ns / 100ps
 
-module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH = 10) (   //this SPI module talks with WIDTH-bit words
+module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH = 10, parameter integer POWERUP_CYCLES = 150, parameter integer CONV_CYCLES = 230) (   //this SPI module talks with WIDTH-bit words
    
    
    input    wire   clk,                      // FPGA 100 MHz Clock
    input    wire   rst,                      // to map on FPGA Reset
    input    wire   MISO,
+   input    wire   stop,
    //input    wire  start,
    
-   output   reg   busy,                     // Transaction in progress
-   output   reg   CONVST,
+   output   wire   CONVST,
    output   reg   D_en,                     // Data Valid pulse (1 clock cycle)
-   output   reg   [WIDTH - 1:0] ADC_Data,   // Byte received on MISO
-   output   reg   sclk
+   output   reg   [WIDTH - 1:0] pdo,   // Byte received on MISO
+   output   wire   sclk
    
    
    ) ;
@@ -38,7 +38,7 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    //////////////////////////////////////////
    wire conv_tick;
    
-   TickCounter #( .MAX(230) ) TickCounter_inst1 ( .clk(pll_clk), .tick(conv_tick) );   //1 tick with  2.3 us period
+   TickCounter #( .MAX(300) ) TickCounter_inst1 ( .clk(pll_clk), .tick(conv_tick) );   //1 tick with  3 us period to start conversion
    
    
    
@@ -75,30 +75,72 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    assign w_CPHA  = (SPI_MODE == 1) | (SPI_MODE == 3);
    
    
+   reg   busy;                     // Transaction in progress
+   reg   r_sclk;
+   assign sclk = (adc_ready) ? r_sclk : 1'b0;
+   
+   wire next_sclk = ~r_sclk;
+   wire sclk_rise = (spi_tick && ~r_sclk && next_sclk);
+   wire sclk_fall = (spi_tick && r_sclk && ~next_sclk);
+
+   
+   reg [$clog2(WIDTH)-1:0] bit_cnt;
+   reg [$clog2(WIDTH*2)-1:0] sclk_edge_cnt;
+   reg convst_fsm = 1'b0;
+   
+   wire sampling_en;
+   assign sampling_en = (w_CPHA) ? (~r_sclk) : (r_sclk);
+   
+   reg last_bit_sampled;
+
+   
+   wire transfer_done = last_bit_sampled && spi_tick && (r_sclk == w_CPOL);
+   
+   reg [$clog2(CONV_CYCLES)-1:0] conv_cnt;
+  
+   reg [$clog2(POWERUP_CYCLES)-1:0] pwr_cnt;
+   reg adc_ready = 1'b0;
+   reg convst_pwr = 1'b0;
+   
+   
+  
+   assign CONVST = adc_ready ? convst_fsm : 
+                   ~adc_ready ? convst_pwr:
+				   stop      ? 1'b0       ;
+   
+   
    ///////////////////////////
    //   states definition   //
    ///////////////////////////
 
    // simply assume a straight-binary states encoding and count from 0 to 4
    parameter [2:0] IDLE         = 3'd0;
-   parameter [2:0] START_CONV   = 3'd1;
-   parameter [2:0] WAIT_SCLK    = 3'd2;
+   parameter [2:0] START_CONVERSION   = 3'd1;
+   parameter [2:0] ENABLE_SERIAL  = 3'd2;
    parameter [2:0] SPI_TRANSFER = 3'd3;
    parameter [2:0] DONE         = 3'd4;
    
    reg [2:0] STATE, STATE_NEXT ;
    
-   reg   r_sclk;
-   reg [$clog2(WIDTH)-1:0] bit_cnt;
-   reg [$clog2(WIDTH*2)-1:0] sclk_edge_cnt;
+   
+
+   always @(posedge pll_clk) begin
+      if (rst) begin
+         convst_pwr <= 1'b0;     
+         pwr_cnt    <= 0;
+         adc_ready  <= 1'b0;
+      end 
+	  else if (~adc_ready) begin
+	  
+      convst_pwr <= 1'b1;     // rising edge → power up ADC
+      pwr_cnt    <= pwr_cnt + 1'b1;
+	  
+         if (pwr_cnt == POWERUP_CYCLES-1)
+            adc_ready <= 1'b1;   // ADC ready after 1.5 µs
+      end
+   end
 
    
-   wire sampling_en;
-   assign sampling_en = (w_CPHA) ? (~r_sclk) : (r_sclk);
-   
-   wire bit_done;
-   assign bit_done = (sclk_edge_cnt == 0);
-  
 
 
    /////////////////////////////////////////////////
@@ -110,7 +152,11 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
       if( rst | (~pll_locked) )
          STATE <= IDLE ;
 
-      else
+      else if (~adc_ready)
+	  
+	     STATE <= IDLE ;
+	  
+	  else
          STATE <= STATE_NEXT ;
 
    end   // always
@@ -126,39 +172,38 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
 	  
 	  busy = 1'b0;
 	  D_en = 1'b0;
-	  CONVST = 1'b0;
+	  convst_fsm = 1'b1;
 	  
 	  case (STATE)
 	     
 		 IDLE: begin
 		    
 			busy = 1'b0;
+			convst_fsm = 1'b1;
 			
 			if (conv_tick)
 			   
-			   STATE_NEXT = START_CONV;
+			   STATE_NEXT = START_CONVERSION;
 			   
-			else
-			   
-			   STATE_NEXT = IDLE;
-			
 		 end //IDLE
          
-		 START_CONV: begin
+		 START_CONVERSION: begin
 		 
 		    busy = 1'b1;
-			CONVST = 1'b1;   
+			convst_fsm = 1'b0;   
 			
-			STATE_NEXT = WAIT_SCLK;
+			if (spi_tick)
+			   
+			   STATE_NEXT = ENABLE_SERIAL;
 			
-		 end   //START_CONV
+		 end   //START_CONVERSION
 			
-		 WAIT_SCLK: begin
+		 ENABLE_SERIAL: begin
 		 
 		    busy = 1'b1;
-			CONVST = 1'b0;
+			convst_fsm = 1'b1;
 			
-		    	//if (spi_tick) 
+		    if (conv_cnt == CONV_CYCLES - 1'b1) 
 			
 			   STATE_NEXT = SPI_TRANSFER;
 			   
@@ -169,7 +214,7 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
          
             busy = 1'b1;
             
-            if (bit_done)
+            if (transfer_done)
             
                STATE_NEXT = DONE;
           
@@ -195,25 +240,59 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    
    
    
+   
+   
+   always @(posedge pll_clk) begin
+   
+      if (rst | STATE != ENABLE_SERIAL) begin
+	     
+		 conv_cnt <= 0;   //TYPE CASTING 
+		 
+	  end   //if 
+	  
+	  else begin
+	  
+	     conv_cnt <= conv_cnt + 1'b1;
+		 
+	  end   //else 
+   
+   end   //always 
+   
+   
+   
    always @(posedge pll_clk) begin
   
       if (rst | (~pll_locked)) begin
     
 	     r_sclk  <= w_CPOL;
          bit_cnt <= WIDTH;             //!!WARNING!!BE AWARE OF TYPE CASTING!!
-		 sclk_edge_cnt <= WIDTH*2;     //!!WARNING!!BE AWARE OF TYPE CASTING!!
-		 ADC_Data <= {WIDTH{1'b0}};
+		 last_bit_sampled <= 1'b0;
+		 pdo <= {WIDTH{1'b0}};
+
 		 
       end   //if rst
 	  
-      else if (STATE == SPI_TRANSFER && spi_tick) begin
-    
-	     r_sclk <= ~r_sclk;            //full r_sclk period is 100 ns. fr_sclk = 1 MHz
-		 sclk_edge_cnt <= sclk_edge_cnt - 1'b1;
-
-         if (sampling_en) begin
+      else if (STATE == SPI_TRANSFER && spi_tick && ~last_bit_sampled) begin
+         
+		 //Toggle SCLK
+	     r_sclk <= next_sclk;            //full r_sclk period is 60 ns. fr_sclk =  MHz
 		 
-            ADC_Data <= {ADC_Data[WIDTH-2:0], MISO};
+		 //if SPI phase is = 1 then sample on falling edge
+		 if (w_CPHA && sclk_fall) begin 
+		    
+            pdo <= {pdo[WIDTH-2:0], MISO};
+			
+			if (bit_cnt == 1)
+			   last_bit_sampled <= 1'b1;
+			   
+            bit_cnt <= bit_cnt - 1'b1;			
+			
+		 end   //if
+         
+		 //if SPI phase is = 0 then sample on rising edge
+         else if (~w_CPHA && sclk_rise) begin
+		 
+            pdo <= {pdo[WIDTH-2:0], MISO};
             bit_cnt <= bit_cnt - 1'b1;
     
 		 end
@@ -223,20 +302,12 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
       else if (STATE == IDLE) begin
 	  
          r_sclk  <= w_CPOL;
-		 sclk_edge_cnt <= WIDTH*2;    //!!WARNING!!BE AWARE OF TYPE CASTING!!
          bit_cnt <= WIDTH;            //!!WARNING!!BE AWARE OF TYPE CASTING!!
+		 last_bit_sampled <= 1'b0;
 		 
       end
 	  
    end
-   
-   always @(posedge pll_clk) begin   //in this way sclk comes is a 10 ns delayed copy of r_sclk. is it needed? can i directly send r_sclk to ADC?
-      
-	  if (rst | (~pll_locked))
-         sclk <= w_CPOL;
-      else
-         sclk <= r_sclk;
-      end
 
 endmodule 
 

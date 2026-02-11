@@ -224,7 +224,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 		 SEND_BYTE: begin
 		 
 		    tx_busy = 1'b1;
-			TxD = tx_data_buf[bit_cnt];   //WARNING! check timing
+			TxD = tx_data_buf[bit_cnt];   
 			
 			
 			if (tx_en && bit_cnt == 3'd7)
