@@ -26,6 +26,8 @@ module ADC #(parameter integer WIDTH = 10, parameter real t_power_up = 1500, par
    reg data_ready ;
 
    assign MISO = data_ready ? miso_drv : 1'bz;
+   
+   reg [WIDTH-1:0] conv_counter;
 
    
    //////////////
@@ -37,6 +39,7 @@ module ADC #(parameter integer WIDTH = 10, parameter real t_power_up = 1500, par
       powered_up = 1'b0;
       data_ready = 1'b0;
       miso_drv   = 1'b0;
+	  conv_counter = {WIDTH{1'b0}};
       #(t_power_up);
       powered_up = 1'b1;
 	  
@@ -52,10 +55,12 @@ module ADC #(parameter integer WIDTH = 10, parameter real t_power_up = 1500, par
       if (~powered_up)
          $error("ADC: CONVST toggled before power-up complete");
 
-	  shift_reg = $random;
+	  shift_reg = <= conv_counter;
+	  conv_counter <= conv_counter + 1'b1;
+	  
 	  bit_cnt <= WIDTH;	  
-	  data_ready = 1'b0;
-	  $display("[%0t ns] ADC Data measured: %b", $time, shift_reg);
+	  data_ready <= 1'b0;
+	  $display("[%0t ns] ADC Data measured: %b", $time, conv_counter);
 	  
 
 	  

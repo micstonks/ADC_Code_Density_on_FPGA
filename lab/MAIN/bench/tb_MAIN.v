@@ -29,11 +29,11 @@ module tb_MAIN ;
    ////////////////////////
    
    
-   reg rst=1'b1;
+   reg rst;
    
-   reg start = 1'b0;
+   reg start;
    
-   reg stop = 1'b0;
+   reg stop;
    
    wire convst;
    
@@ -53,6 +53,10 @@ module tb_MAIN ;
    //////////////////
 
    initial   begin
+   
+      rst = 1'b1;
+	  start = 1'b0;
+	  stop = 1'b0;
    
       #500 rst = 1'b0;
 	  

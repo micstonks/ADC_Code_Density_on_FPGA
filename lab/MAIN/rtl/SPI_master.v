@@ -12,7 +12,7 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    input    wire   rst,                      // to map on FPGA Reset
    input    wire   MISO,
    input    wire   stop,
-   //input    wire  start,
+
    
    output   wire   CONVST,
    output   reg   D_en,                     // Data Valid pulse (1 clock cycle)
@@ -104,9 +104,9 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    
    
   
-   assign CONVST = adc_ready ? convst_fsm : 
-                   ~adc_ready ? convst_pwr:
-				   stop      ? 1'b0       ;
+   assign CONVST = (stop)      ?   1'b0     :
+                   (adc_ready) ? convst_fsm :
+				   convst_pwr               ;
    
    
    ///////////////////////////

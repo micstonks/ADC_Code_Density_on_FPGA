@@ -30,7 +30,7 @@ module tb_SPI_master ;
    
    wire miso;    
    
-   wire busy ; 
+   reg stop;
    
    wire CONVST;
    
@@ -41,7 +41,7 @@ module tb_SPI_master ;
    wire   [`WIDTH - 1:0]   pdo ;   //parallel data out
 
 
-   SPI_master   #( .SPI_MODE(1), .WIDTH(`WIDTH) )   DUT  ( .clk(clk100), .rst(rst), .MISO(miso), .busy(busy), .CONVST(CONVST), .D_en(D_en), .pdo(pdo), .sclk(sclk)) ;
+   SPI_master   #( .SPI_MODE(1), .WIDTH(`WIDTH) )   DUT  ( .clk(clk100), .rst(rst), .MISO(miso), .stop(stop), .CONVST(CONVST), .D_en(D_en), .pdo(pdo), .sclk(sclk)) ;
    
    
    /////////////////////////////////
@@ -60,6 +60,7 @@ module tb_SPI_master ;
    initial begin
       
 	  rst = 1'b1;
+	  stop = 1'b0;
       #500 rst = 1'b0;
 
       repeat (5) begin
@@ -68,7 +69,8 @@ module tb_SPI_master ;
          $display("[%0t ns] ADC Data received: %b", $time, pdo);
 		 
       end
-
+      
+	  #50 stop = 1'b1;
       #1000;
       $finish;
 	  
