@@ -36,7 +36,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    always @(posedge clk) begin
     if (rst) 
         addr <= {LENGTH_ADDR{1'b0}};
-     else if (tx_en && byte_index == 2'd3)      // last byte send
+     else if (tx_en && byte_index == 2'd3 && STATE == STOP)      // last byte send
         addr <= addr + 1'b1;                    // move to the next cell
      end
   
@@ -52,17 +52,18 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    wire [7:0] tx_data_hi = tx_data[WIDTH_DATA-1:8];           //BYTE2
    wire [7:0] tx_data_lo = tx_data[7:0];                     //BYTE3 UART works at 8bit,for the data using 2-byte
    
-   reg [1:0] byte_index;       
-
-   wire [7:0] selected_byte;
+   reg tx_busy;
    
-   assign selected_byte = 
-      
-	  (byte_index == 2'd0) ? addr_hi :
-	  (byte_index == 2'd1) ? addr_lo :
-	  (byte_index == 2'd2) ? tx_data_hi :
-	  tx_data_lo;
-	  
+   wire tx_start;
+   
+   assign tx_start = ( start && ~tx_busy) ? 1'b1: 1'b0;
+   
+
+
+   ////////////////
+   // bit_cnt //
+   ///////////////   
+   
    reg [2:0] bit_cnt;
    
    always @(posedge clk) begin
@@ -79,16 +80,11 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    
    end   //always
    
-   reg tx_busy;
-   
-   wire tx_start;
-   
-   assign tx_start = ( start && ~tx_busy) ? 1'b1: 1'b0;
-   
-   
    ////////////////
    // Byte_index //
    ///////////////
+   
+   reg [1:0] byte_index;       
    
    always @(posedge clk) begin
       
@@ -98,9 +94,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
       
 	  end   //if
       
-	  else if (
-	  
-	  STATE == STOP && tx_en) begin
+	  else if (STATE == STOP && tx_en) begin
 	  
          if (byte_index == 2'd3)
 	  
@@ -113,6 +107,15 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
      end   //else if
 	 
    end   //always
+   
+   wire [7:0] selected_byte;
+   
+   assign selected_byte = 
+      
+	  (byte_index == 2'd0) ? addr_hi :
+	  (byte_index == 2'd1) ? addr_lo :
+	  (byte_index == 2'd2) ? tx_data_hi :
+	  tx_data_lo;
 
 
 
@@ -169,7 +172,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
     //  combinational part  //
    //////////////////////////
    
-   integer i;
+
 
    always @(*) begin
 
@@ -180,7 +183,6 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
          IDLE : begin
 
             TxD     = 1'b1 ;
-			bit_cnt = 3'd0;
 			tx_busy = 1'b0;
 			
             if (tx_start)
