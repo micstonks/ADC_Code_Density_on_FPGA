@@ -84,6 +84,21 @@ set_property CONFIG_VOLTAGE 3.3 [current_design]
 create_clock -period 10.000 -name clk100 -waveform {0.000 5.000} -add [get_ports clk]
 
 
+## assume 100ps clock uncertainty for both setup/hold checks
+set_clock_uncertainty 0.100 [all_clocks]
+
+#set_clock_uncertainty -setup 0.100 [all_clocks]
+#set_clock_uncertainty -hold  0.075 [all_clocks]
+
+## constrain the in2reg timing paths (assume approx. 1/2 clock period)
+set_input_delay -clock clk100 2.000 [all_inputs]
+
+## constrain the reg2out timing paths (assume approx. 1/2 clock period)
+set_output_delay -clock clk100 2.000 [all_outputs]
+
+#set_false_path -to [all_outputs]
+
+
 ################################
 ##   additional constraints   ##
 ################################
@@ -96,4 +111,11 @@ create_clock -period 10.000 -name clk100 -waveform {0.000 5.000} -add [get_ports
 
 set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 4  [current_design]
 set_property CONFIG_MODE SPIx4  [current_design]
+
+
+
+
+
+
+
 
