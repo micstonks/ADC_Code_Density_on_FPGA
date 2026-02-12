@@ -1,0 +1,13 @@
+0.7
+2020.2
+Oct 14 2022
+05:20:55
+C:/Users/miche/Desktop/LAB_ELETTRONICA/project/lab/MAIN/MAIN/MAIN.sim/sim_1/behav/xsim/glbl.v,1665704903,verilog,,,,glbl,,,,,,,,
+C:/Users/miche/Desktop/LAB_ELETTRONICA/project/lab/MAIN/rtl/BaudGen.v,1770550054,verilog,,C:/Users/miche/Desktop/LAB_ELETTRONICA/project/lab/MAIN/rtl/FIFO.v,,BaudGen,,,,,,,,
+C:/Users/miche/Desktop/LAB_ELETTRONICA/project/lab/MAIN/rtl/FIFO.v,1770818432,verilog,,C:/Users/miche/Desktop/LAB_ELETTRONICA/project/lab/MAIN/rtl/Histogrammer.v,,FIFO,,,,,,,,
+C:/Users/miche/Desktop/LAB_ELETTRONICA/project/lab/MAIN/rtl/Histogrammer.v,1770800890,verilog,,C:/Users/miche/Desktop/LAB_ELETTRONICA/project/lab/MAIN/rtl/RAM.v,,Histogrammer,,,,,,,,
+C:/Users/miche/Desktop/LAB_ELETTRONICA/project/lab/MAIN/rtl/MAIN.v,1770887323,verilog,,,,MAIN,,,,,,,,
+C:/Users/miche/Desktop/LAB_ELETTRONICA/project/lab/MAIN/rtl/RAM.v,1770800849,verilog,,C:/Users/miche/Desktop/LAB_ELETTRONICA/project/lab/MAIN/rtl/SPI_master.v,,RAM,,,,,,,,
+C:/Users/miche/Desktop/LAB_ELETTRONICA/project/lab/MAIN/rtl/SPI_master.v,1770823323,verilog,,C:/Users/miche/Desktop/LAB_ELETTRONICA/project/lab/MAIN/rtl/TickCounter.v,,SPI_master,,,,,,,,
+C:/Users/miche/Desktop/LAB_ELETTRONICA/project/lab/MAIN/rtl/TickCounter.v,1770550054,verilog,,C:/Users/miche/Desktop/LAB_ELETTRONICA/project/lab/MAIN/rtl/uart_tx_FSM.v,,TickCounter,,,,,,,,
+C:/Users/miche/Desktop/LAB_ELETTRONICA/project/lab/MAIN/rtl/uart_tx_FSM.v,1770887859,verilog,,C:/Users/miche/Desktop/LAB_ELETTRONICA/project/lab/MAIN/rtl/MAIN.v,,uart_tx_FSM,,,,,,,,

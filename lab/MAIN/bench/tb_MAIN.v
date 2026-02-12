@@ -31,8 +31,6 @@ module tb_MAIN ;
    
    reg rst;
    
-   reg start;
-   
    reg stop;
    
    wire convst;
@@ -43,7 +41,7 @@ module tb_MAIN ;
    
    wire serial_output;
    
-   MAIN  DUT  (.clk(clk100), .rst(rst), .MISO(miso), .start(start), .stop(stop), .sclk(sclk), .convst(convst), .serial_output(serial_output));
+   MAIN  DUT  (.clk(clk100), .rst(rst), .MISO(miso), .stop(stop), .sclk(sclk), .convst(convst), .serial_output(serial_output));
    
  
    
@@ -55,16 +53,15 @@ module tb_MAIN ;
    initial   begin
    
       rst = 1'b1;
-	  start = 1'b0;
+	
 	  stop = 1'b0;
    
       #500 rst = 1'b0;
 	  
 	  #(3000*5) stop = 1'b1;
+
 	  
-	  start = 1'b1;
-	  
-	  #(4*11*10414*10);
+	 // #(4*11*10414*10);
 	  
 	  $finish; 
    

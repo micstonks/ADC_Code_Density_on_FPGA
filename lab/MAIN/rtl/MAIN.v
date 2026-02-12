@@ -22,8 +22,7 @@ module MAIN (
     
 	input wire clk,
 	input wire rst,
-    input wire MISO,            //ADC -> SPI
-	input wire start,       
+    input wire MISO,            //ADC -> SPI       
     input wire stop,    
 
     output wire sclk,           //SPI -> ADC
@@ -83,7 +82,7 @@ module MAIN (
 		 .stop(stop),
 
          // output
-         .CONVST(CONVST),
+         .CONVST(convst),
          .D_en(wr_en_FIFO),                      // Data Valid pulse (1 clock cycle)
          .pdo(wr_data_FIFO),                // Byte received on MISO
          .sclk(sclk)
@@ -162,7 +161,7 @@ module MAIN (
    //////////////////////////////////////////
    //   free-running baud-rate generator   //
    //////////////////////////////////////////
-     wire baud_tick ;
+   
 
    BaudGen   BaudGen_inst (.clk(pll_clk), .tx_en(baud_tick)) ;
     
@@ -177,7 +176,7 @@ module MAIN (
 		 //input 
          .clk(pll_clk),                          // assume 100 MHz on-board system clock
          .rst(pll_rst),                          // synchronous reset, active high
-         .start(start),                         // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
+         .stop(stop),                         // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
          .tx_en(baud_tick),                      // baud-rate "tick", single clock-pulse asserted once every 1/(9.6 kHz)
          .tx_data(rd_data_RAM_UART),             // 2 byte to be transmitted over the serial lane
          

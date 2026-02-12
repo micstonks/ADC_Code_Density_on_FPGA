@@ -1,0 +1,16 @@
+# compile verilog/system verilog design source files
+verilog xil_defaultlib  \
+"../../../../../rtl/BaudGen.v" \
+"../../../../../rtl/FIFO.v" \
+"../../../../../rtl/Histogrammer.v" \
+"../../../../../rtl/RAM.v" \
+"../../../../../rtl/SPI_master.v" \
+"../../../../../rtl/TickCounter.v" \
+"../../../../../rtl/uart_tx_FSM.v" \
+"../../../../../rtl/MAIN.v" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort

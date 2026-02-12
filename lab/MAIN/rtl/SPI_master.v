@@ -20,16 +20,7 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    
    
    ) ;
-   
-   ///////////////////////////////////////
-   //   PLL IP core (Clocking Wizard)   //
-   ///////////////////////////////////////
-
-   // PLL signals
-   wire pll_clk, pll_locked;
-
-   PLL  PLL_inst ( .CLK_IN(clk), .CLK_OUT_100(pll_clk), .LOCKED(pll_locked) ) ;      // 100 MHz output clock
-   //PLL  PLL_inst ( .CLK_IN(clk), .CLK_OUT_100(UNCONNECTED), .CLK_OUT_200(pll_clk), .LOCKED(pll_locked) ) ;    // 200 MHz output clock
+ 
 
 
    //////////////////////////////////////////
@@ -37,7 +28,7 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    //////////////////////////////////////////
    wire conv_tick;
    
-   TickCounter #( .MAX(300) ) TickCounter_inst1 ( .clk(pll_clk), .tick(conv_tick) );   //1 tick with  3 us period to start conversion
+   TickCounter #( .MAX(300) ) TickCounter_inst1 ( .clk(clk), .tick(conv_tick) );   //1 tick with  3 us period to start conversion
    
    
    
@@ -46,7 +37,7 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    //////////////////////////////////////////
    wire spi_tick;
    
-   TickCounter #( .MAX(3) ) TickCounter_inst2 ( .clk(pll_clk), .tick(spi_tick) );   //1 tick with 33.3 MHz frequency, 1 tick each 30 ns ===> fsclk = 16 MHz < 20 MHz!
+   TickCounter #( .MAX(3) ) TickCounter_inst2 ( .clk(clk), .tick(spi_tick) );   //1 tick with 33.3 MHz frequency, 1 tick each 30 ns ===> fsclk = 16 MHz < 20 MHz!
 
    //////////////////////////////////////////////////////////
    //           SPI_MODE, can be 0, 1, 2, or 3.            //
@@ -129,7 +120,7 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    
    
 
-   always @(posedge pll_clk) begin
+   always @(posedge clk) begin
       if (rst) begin
          convst_pwr <= 1'b0;     
          pwr_cnt    <= 0;
@@ -152,9 +143,9 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    //   next-state logic (pure sequential part)   //
    /////////////////////////////////////////////////
 
-   always @(posedge pll_clk) begin      // infer a bank of FlipFlops
+   always @(posedge clk) begin      // infer a bank of FlipFlops
 
-      if( rst | (~pll_locked) )
+      if( rst  )
          STATE <= IDLE ;
 
       else if (~adc_ready)
@@ -251,7 +242,7 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    
    
    
-   always @(posedge pll_clk) begin
+   always @(posedge clk) begin
    
       if (rst | STATE != ENABLE_SERIAL) begin
 	     
@@ -269,9 +260,9 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    
    
    
-   always @(posedge pll_clk) begin
+   always @(posedge clk) begin
   
-      if (rst | (~pll_locked)) begin
+      if (rst ) begin
     
 	     r_sclk  <= w_CPOL;
          bit_cnt <= WIDTH;             //!!WARNING!!BE AWARE OF TYPE CASTING!!

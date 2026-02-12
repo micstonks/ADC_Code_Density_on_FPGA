@@ -20,7 +20,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 
    input  wire clk,                              // assume 100 MHz on-board system clock
    input  wire rst,                              // synchronous reset, active high
-   input  wire start,                         // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
+   input  wire stop,                            // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
    input  wire tx_en,                            // baud-rate "tick", single clock-pulse asserted once every 1/(9.6 kHz)
    input  wire [WIDTH_DATA-1:0] tx_data,         // 2 byte to be transmitted over the serial lane
    
@@ -56,7 +56,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    
    wire tx_start;
    
-   assign tx_start = ( start && ~tx_busy) ? 1'b1: 1'b0;
+   assign tx_start = ( stop && ~tx_busy) ? 1'b1: 1'b0;
    
 
 
