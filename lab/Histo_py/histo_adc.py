@@ -24,7 +24,9 @@ histo = [0] * NBINS  # list of 1024 zeros
 # ======================
 # READ UART DATA
 # ======================
-print("Reading UART ... ")
+
+print("Reading UART ...CTRL+C for stopping ")
+
 
 try:
     while True:

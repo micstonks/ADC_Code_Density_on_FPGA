@@ -20,7 +20,6 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    
    
    ) ;
- 
 
 
    //////////////////////////////////////////

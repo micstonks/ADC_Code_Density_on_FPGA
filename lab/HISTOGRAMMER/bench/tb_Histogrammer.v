@@ -1,3 +1,4 @@
+
 //
 // Testbench module for SPI master
 //
@@ -40,7 +41,11 @@ module tb_Histogrammer ;
    ///////////////////////////
 
    reg rst  ;
+<<<<<<< HEAD
    
+=======
+   reg start;
+>>>>>>> cbb6cf727b56c4bdc8ac2efddc160801f671f529
    wire miso;    
    
    reg stop;
@@ -62,15 +67,25 @@ module tb_Histogrammer ;
    wire write_enable_RAM;
    
    wire read_enable_FIFO; 
+<<<<<<< HEAD
    
+=======
+   wire serial_output;
+>>>>>>> cbb6cf727b56c4bdc8ac2efddc160801f671f529
    wire full;
    wire empty;
    
    wire [$clog2(`DEPTH_RAM)-1:0] write_address_RAM;
    
+<<<<<<< HEAD
    wire [$clog2(`DEPTH_RAM)-1:0] UNCONNECTED_read_adress_b_RAM; 
    
    wire [`WIDTH_RAM-1 :0] UNCONNECTED_read_data_b_RAM ;  
+=======
+   wire [$clog2(`DEPTH_RAM)-1:0] read_adress_b_RAM; 
+   
+   wire [`WIDTH_RAM-1 :0] read_data_b_RAM;  
+>>>>>>> cbb6cf727b56c4bdc8ac2efddc160801f671f529
    
   
 
@@ -100,10 +115,17 @@ module tb_Histogrammer ;
       .clk(clk100), 
 	  .wen(write_enable_RAM), 
 	  .addr_a(write_address_RAM),
+<<<<<<< HEAD
 	  .addr_b(UNCONNECTED_read_adress_b_RAM),
 	  .din_a(wr_data_RAM),
 	  .dout_a(rd_data_RAM),
 	  .dout_b(UNCONNECTED_read_data_b_RAM)
+=======
+	  .addr_b( read_adress_b_RAM),
+	  .din_a(wr_data_RAM),
+	  .dout_a(rd_data_RAM),
+	  .dout_b(read_data_b_RAM)
+>>>>>>> cbb6cf727b56c4bdc8ac2efddc160801f671f529
 	  
 	  ) ;
 	  
@@ -141,6 +163,44 @@ module tb_Histogrammer ;
     ADC #( .WIDTH(`WIDTH_FIFO), .t_power_up(1500), .t_conversion(2300)) ADC_inst ( .CONVST(CONVST), .sclk(sclk), .MISO(miso) ) ;
 
 
+<<<<<<< HEAD
+=======
+ 
+   //////////////////////////////////////////
+   //   free-running baud-rate generator   //
+   //////////////////////////////////////////
+     wire baud_tick ;
+
+   BaudGen   BaudGen_inst (.clk(clk100), .tx_en(baud_tick)) ;
+    
+	
+	
+   ///////////////////////////////
+   //   UART   Instantiate     //
+   /////////////////////////////
+   
+    uart_tx_FSM #( .WIDTH_DATA(`WIDTH_RAM), .LENGTH_ADDR(`WIDTH_FIFO)) uart_inst(
+             
+		 //input 
+         .clk(clk100),                          // assume 100 MHz on-board system clock
+         .rst(rst),                          // synchronous reset, active high
+         .start(start),                         // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
+         .tx_en(baud_tick),                      // baud-rate "tick", single clock-pulse asserted once every 1/(9.6 kHz)
+         .tx_data(read_data_b_RAM),             // 2 byte to be transmitted over the serial lane
+         
+		 //output
+         .TxD(serial_output),                     // serial output stream
+         .addr( read_adress_b_RAM)                         // 10bit for the address            
+  
+  ) ;
+
+ 
+
+
+
+
+
+>>>>>>> cbb6cf727b56c4bdc8ac2efddc160801f671f529
    ///////////////////////
    //   main stimulus   //
    ///////////////////////
@@ -151,6 +211,10 @@ module tb_Histogrammer ;
       
 	  rst = 1'b1;
 	  stop = 1'b0;
+<<<<<<< HEAD
+=======
+	  start = 1'b0;
+>>>>>>> cbb6cf727b56c4bdc8ac2efddc160801f671f529
       #500 rst = 1'b0;
 	  
 	  #(3000*5)
@@ -162,7 +226,11 @@ module tb_Histogrammer ;
       end   //for
 	  
 	  #500 stop = 1'b1;
+<<<<<<< HEAD
 	  
+=======
+	  #500 start = 1'b1;
+>>>>>>> cbb6cf727b56c4bdc8ac2efddc160801f671f529
 	  #(3000)$finish;
       
 	  

@@ -12,6 +12,7 @@
 ##Powerpoint files!!
 *.pptx 
 
+*.wdb
 
 ## log files
 *.log

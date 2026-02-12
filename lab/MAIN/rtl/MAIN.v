@@ -22,7 +22,7 @@ module MAIN (
     
 	input wire clk,
 	input wire rst,
-    input wire MISO,            //ADC -> SPI       
+    input wire MISO,            //ADC -> SPI      
     input wire stop,    
 
     output wire sclk,           //SPI -> ADC
@@ -161,7 +161,7 @@ module MAIN (
    //////////////////////////////////////////
    //   free-running baud-rate generator   //
    //////////////////////////////////////////
-   
+
 
    BaudGen   BaudGen_inst (.clk(pll_clk), .tx_en(baud_tick)) ;
     

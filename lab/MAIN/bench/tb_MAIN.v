@@ -53,15 +53,14 @@ module tb_MAIN ;
    initial   begin
    
       rst = 1'b1;
-	
 	  stop = 1'b0;
    
-      #500 rst = 1'b0;
+      #50 rst = 1'b0;
 	  
 	  #(3000*5) stop = 1'b1;
+	
+	  #(3*4*11*10414*10);
 
-	  
-	 // #(4*11*10414*10);
 	  
 	  $finish; 
    
