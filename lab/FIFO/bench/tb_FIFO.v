@@ -1,0 +1,142 @@
+//
+//
+// Example testbench to simulate an 10-bit wide, 32-bit deep First-In Fisrt-Out (FIFO)
+// memory compiled as IP using Xilinx FIFO Generator.
+//
+//
+// Conti - Ragusa
+//
+
+
+`define FIFO_WIDTH  10   // useless in this testbench, just to remind us that if needed we can also use macros in Verilog ...
+`define FIFO_DEPTH  16
+
+
+`timescale 1ns / 100ps
+
+module tb_FIFO ;
+
+
+   /////////////////////////////////
+   //   100 MHz clock generator   //
+   /////////////////////////////////
+
+   wire clk100 ;
+
+   ClockGen  ClockGen_inst ( .clk(clk100) ) ;
+
+
+
+   ///////////////////////////
+   //   device under test   //
+   ///////////////////////////
+
+   reg rst ;
+
+   reg wr_enable = 1'b0 ;
+   reg rd_enable = 1'b0 ;
+
+   reg  [`FIFO_WIDTH-1:0] wr_data = 10'h000 ;
+   wire [`FIFO_WIDTH-1:0] rd_data ;
+
+   wire empty, full ;
+
+   FIFO #(.WIDTH(`FIFO_WIDTH)) DUT (
+
+      // clock and reset
+      .clk        (                     clk100 ),
+      .Reset      (                       rst  ),
+ 
+      // write section
+      .WrEnable  (                  wr_enable ),
+      .WrData    (   wr_data[`FIFO_WIDTH-1:0] ),
+
+      // read section
+      .RdEnable  (                  rd_enable ),
+      .RdData    (   rd_data[`FIFO_WIDTH-1:0] ),
+
+      // diagnostics
+      .Full      (                       full ),
+      .Empty     (                      empty )
+
+      ) ;
+
+
+
+   ///////////////////////
+   //   main stimulus   //
+   ///////////////////////
+
+   // **IMPORTANT: in the following there are 4 procedural blocks that runs in parallel (concurrent programming)
+
+
+   //
+   // reset process
+   //
+   initial begin
+      #72  rst = 1'b1 ;    // assert reset
+      #200 rst = 1'b0 ;    // release reset (Xilinx recommends at least 100ns long reset)
+   end
+
+
+   //
+   // write process
+   //
+   integer wr ;  // for-loop iterator
+
+   initial begin
+
+      #400  // wait for reset to be released
+
+      for (wr = 0; wr < 1024; wr = wr+1) begin
+
+         #2300 wr_data[9:0] = $random ;   // **REMIND: $random returns a 32-bit random integer, here we cast the 8 left-most bits to wr_data
+
+  
+         @(posedge clk100) wr_enable = 1'b1 ;    // "dirty" way to generate a single clock-pulse control signal
+         @(posedge clk100) wr_enable = 1'b0 ;
+ 
+      end   // for
+   end   // initial
+
+
+   //
+   // read process => start reading the FIFO at 800ns, then stop for 4us to go FULL, finally resume
+   //
+   integer rd ;   // for-loop iterator
+
+   initial begin
+
+      #400   // wait for reset to be released
+
+      #2300   // start reading only after 800ns
+
+      for( rd = 0; rd < 1024; rd = rd+1) begin
+
+         #4000
+
+         @(posedge clk100) rd_enable = 1'b1 ;    // "dirty" way to generate a single clock-pulse control signal
+         @(posedge clk100) rd_enable = 1'b0 ;
+
+      end   // for
+
+
+      
+      #8000 $finish ;
+
+   end   // initial
+
+
+   //
+   // monitor FIFO status
+   //
+   always @(posedge full) begin
+
+      $display("\n\n**BAD** ! FIFO-full condition detected at %f us !\n\n", ($realtime)*1e-3 ) ;
+
+      #100 $stop ;  // suspend the simulation and enter into interactive debug mode (but the simulation can continue by issuing "run all" in the XSim Tcl console)
+
+   end
+
+endmodule
+

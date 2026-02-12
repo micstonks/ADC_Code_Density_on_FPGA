@@ -1,0 +1,8 @@
+0.7
+2020.2
+Oct 14 2022
+05:20:55
+D:/ADC_Code_Density_on_FPGA/lab/FIFO/bench/ClockGen.v,1716115338,systemVerilog,,,,ClockGen,,,D:/ADC_Code_Density_on_FPGA/lab/FIFO/work/sim/../../rtl,,,,,
+D:/ADC_Code_Density_on_FPGA/lab/FIFO/bench/tb_FIFO.v,1770805898,systemVerilog,,,,tb_FIFO,,,D:/ADC_Code_Density_on_FPGA/lab/FIFO/work/sim/../../rtl,,,,,
+D:/ADC_Code_Density_on_FPGA/lab/FIFO/cores/FIFO_WIDTH10_DEPTH16/FIFO_WIDTH10_DEPTH16_sim_netlist.v,1770807432,systemVerilog,,,,FIFO_WIDTH10_DEPTH16;FIFO_WIDTH10_DEPTH16_dmem;FIFO_WIDTH10_DEPTH16_fifo_generator_ramfifo;FIFO_WIDTH10_DEPTH16_fifo_generator_top;FIFO_WIDTH10_DEPTH16_fifo_generator_v13_2_7;FIFO_WIDTH10_DEPTH16_fifo_generator_v13_2_7_synth;FIFO_WIDTH10_DEPTH16_memory;FIFO_WIDTH10_DEPTH16_rd_bin_cntr;FIFO_WIDTH10_DEPTH16_rd_logic;FIFO_WIDTH10_DEPTH16_rd_status_flags_ss;FIFO_WIDTH10_DEPTH16_reset_blk_ramfifo;FIFO_WIDTH10_DEPTH16_wr_bin_cntr;FIFO_WIDTH10_DEPTH16_wr_logic;FIFO_WIDTH10_DEPTH16_wr_status_flags_ss;glbl,,,,,,,,
+D:/ADC_Code_Density_on_FPGA/lab/FIFO/rtl/FIFO.v,1770807090,systemVerilog,,,,FIFO,,,D:/ADC_Code_Density_on_FPGA/lab/FIFO/work/sim/../../rtl,,,,,
