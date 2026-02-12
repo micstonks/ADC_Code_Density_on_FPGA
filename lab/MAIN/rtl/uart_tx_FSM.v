@@ -155,7 +155,6 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
       if(rst) begin
 	  
          STATE <= IDLE ;
-		 tx_busy <= 1'b0;
 		 
       end
 		 

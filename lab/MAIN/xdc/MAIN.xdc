@@ -91,10 +91,10 @@ set_clock_uncertainty 0.100 [all_clocks]
 #set_clock_uncertainty -hold  0.075 [all_clocks]
 
 ## constrain the in2reg timing paths (assume approx. 1/2 clock period)
-set_input_delay -clock clk100 2.000 [all_inputs]
+set_input_delay -clock clk100 2.000 [remove_from_collection [all_inputs] [get_ports clk]]
 
 ## constrain the reg2out timing paths (assume approx. 1/2 clock period)
-set_output_delay -clock clk100 2.000 [all_outputs]
+set_output_delay -clock clk100 2.000 [remove_from_collection [all_inputs] [get_ports clk]]
 
 #set_false_path -to [all_outputs]
 
