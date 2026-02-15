@@ -1,0 +1,59 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2022.2 (win64) Build 3671981 Fri Oct 14 05:00:03 MDT 2022
+| Date         : Thu Feb 12 12:08:04 2026
+| Host         : LAPTOP-O7E912V4 running 64-bit major release  (build 9200)
+| Command      : report_drc -file work/build/reports/post_routing_drc.rpt
+| Design       : MAIN
+| Device       : xc7a35ticsg324-1L
+| Speed File   : -1L
+| Design State : Fully Routed
+------------------------------------------------------------------------------------
+
+Report DRC
+
+Table of Contents
+-----------------
+1. REPORT SUMMARY
+2. REPORT DETAILS
+
+1. REPORT SUMMARY
+-----------------
+            Netlist: MAIN
+          Floorplan: syn_1
+      Design limits: <entire design considered>
+           Ruledeck: default
+             Max violations: <unlimited>
+             Violations found: 4
++-----------+----------+-------------------+------------+
+| Rule      | Severity | Description       | Violations |
++-----------+----------+-------------------+------------+
+| PDRC-153  | Warning  | Gated clock check | 3          |
+| RTSTAT-10 | Warning  | No routable loads | 1          |
++-----------+----------+-------------------+------------+
+
+2. REPORT DETAILS
+-----------------
+PDRC-153#1 Warning
+Gated clock check  
+Net Histogrammer_inst/__0/i__n_0 is a gated clock net sourced by a combinational pin Histogrammer_inst/__0/i_/O, cell Histogrammer_inst/__0/i_. This is not good design practice and will likely impact performance. For SLICE registers, for example, use the CE pin to control the loading of data.
+Related violations: <none>
+
+PDRC-153#2 Warning
+Gated clock check  
+Net Histogrammer_inst/__1/i__n_0 is a gated clock net sourced by a combinational pin Histogrammer_inst/__1/i_/O, cell Histogrammer_inst/__1/i_. This is not good design practice and will likely impact performance. For SLICE registers, for example, use the CE pin to control the loading of data.
+Related violations: <none>
+
+PDRC-153#3 Warning
+Gated clock check  
+Net Histogrammer_inst/rd_data_RAM_buf__0 is a gated clock net sourced by a combinational pin rd_data_RAM_buf_reg[15]_i_2/O, cell rd_data_RAM_buf_reg[15]_i_2. This is not good design practice and will likely impact performance. For SLICE registers, for example, use the CE pin to control the loading of data.
+Related violations: <none>
+
+RTSTAT-10#1 Warning
+No routable loads  
+3 net(s) have no routable loads. The problem bus(es) and/or net(s) are FIFO_inst/FIFO_WIDTH10_DEPTH16_inst/U0/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.wr/gwss.wsts/ram_afull_fb,
+FIFO_inst/FIFO_WIDTH10_DEPTH16_inst/U0/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.wr/gwss.wsts/ram_afull_i
+FIFO_inst/FIFO_WIDTH10_DEPTH16_inst/U0/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.wr/gwss.wsts/ram_full_i.
+Related violations: <none>
+
+
