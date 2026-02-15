@@ -1,0 +1,74 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2022.2 (win64) Build 3671981 Fri Oct 14 05:00:03 MDT 2022
+| Date         : Thu Feb 12 12:08:02 2026
+| Host         : LAPTOP-O7E912V4 running 64-bit major release  (build 9200)
+| Command      : report_timing -file work/build/reports/post_routing_timing.rpt
+| Design       : MAIN
+| Device       : 7a35ti-csg324
+| Speed File   : -1L  PRODUCTION 1.23 2018-06-13
+------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (MET) :             1.198ns  (required time - arrival time)
+  Source:                 rst
+                            (input port clocked by clk100  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            SPI_inst/FSM_sequential_STATE_reg[1]/D
+                            (rising edge-triggered cell FDRE clocked by CLK_OUT_100_PLL  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             CLK_OUT_100_PLL
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            10.000ns  (CLK_OUT_100_PLL rise@10.000ns - clk100 rise@0.000ns)
+  Data Path Delay:        4.805ns  (logic 2.025ns (42.140%)  route 2.780ns (57.860%))
+  Logic Levels:           3  (IBUF=1 LUT4=1 LUT6=1)
+  Input Delay:            2.000ns
+  Clock Path Skew:        -1.789ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    -1.789ns = ( 8.211 - 10.000 ) 
+    Source Clock Delay      (SCD):    0.000ns
+    Clock Pessimism Removal (CPR):    0.000ns
+  Clock Uncertainty:      0.237ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE + UU
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.096ns
+    Phase Error              (PE):    0.077ns
+    User Uncertainty         (UU):    0.100ns
+  Clock Domain Crossing:  Inter clock paths are considered valid unless explicitly excluded by timing constraints such as set_clock_groups or set_false_path.
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk100 rise edge)     0.000     0.000 r  
+                         input delay                  2.000     2.000    
+    A8                                                0.000     2.000 f  rst (IN)
+                         net (fo=0)                   0.000     2.000    rst
+    A8                   IBUF (Prop_ibuf_I_O)         1.541     3.541 f  rst_IBUF_inst/O
+                         net (fo=5, routed)           2.201     5.742    rst_IBUF
+    SLICE_X2Y104         LUT4 (Prop_lut4_I3_O)        0.153     5.895 f  FSM_sequential_STATE[1]_i_2/O
+                         net (fo=2, routed)           0.580     6.474    FSM_sequential_STATE[1]_i_2_n_0
+    SLICE_X1Y104         LUT6 (Prop_lut6_I5_O)        0.331     6.805 r  FSM_sequential_STATE[1]_i_1/O
+                         net (fo=1, routed)           0.000     6.805    FSM_sequential_STATE[1]_i_1_n_0
+    SLICE_X1Y104         FDRE                                         r  SPI_inst/FSM_sequential_STATE_reg[1]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock CLK_OUT_100_PLL rise edge)
+                                                     10.000    10.000 r  
+    E3                                                0.000    10.000 r  clk (IN)
+                         net (fo=0)                   0.000    10.000    PLL_inst/inst/CLK_IN
+    E3                   IBUF (Prop_ibuf_I_O)         1.418    11.418 r  PLL_inst/inst/clkin1_ibufg/O
+                         net (fo=1, routed)           1.181    12.599    PLL_inst/inst/CLK_IN_PLL
+    PLLE2_ADV_X1Y1       PLLE2_ADV (Prop_plle2_adv_CLKIN1_CLKOUT0)
+                                                     -7.736     4.863 r  PLL_inst/inst/plle2_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.576     6.439    PLL_inst/inst/CLK_OUT_100_PLL
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.091     6.530 r  PLL_inst/inst/clkout1_buf/O
+                         net (fo=144, routed)         1.680     8.211    pll_clk
+    SLICE_X1Y104         FDRE                                         r  SPI_inst/FSM_sequential_STATE_reg[1]/C
+                         clock pessimism              0.000     8.211    
+                         clock uncertainty           -0.237     7.974    
+    SLICE_X1Y104         FDRE (Setup_fdre_C_D)        0.029     8.003    SPI_inst/FSM_sequential_STATE_reg[1]
+  -------------------------------------------------------------------
+                         required time                          8.003    
+                         arrival time                          -6.805    
+  -------------------------------------------------------------------
+                         slack                                  1.198    
+
+
+
+
