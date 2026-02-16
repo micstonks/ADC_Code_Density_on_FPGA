@@ -13,5 +13,3 @@ set_property src_info {type:XDC file:1 line:53 export:INPUT save:NONE read:READ}
 set_property -dict { PACKAGE_PIN B11  IOSTANDARD LVCMOS33 } [get_ports sclk] ;   ## JA2
 set_property src_info {type:XDC file:1 line:57 export:INPUT save:NONE read:READ} [current_design]
 set_property -dict { PACKAGE_PIN A11  IOSTANDARD LVCMOS33 } [get_ports convst] ;   ## JA3
-set_property src_info {type:XDC file:1 line:88 export:INPUT save:NONE read:READ} [current_design]
-set_clock_uncertainty 0.100 [all_clocks]

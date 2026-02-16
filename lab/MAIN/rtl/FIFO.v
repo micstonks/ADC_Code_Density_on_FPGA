@@ -1,15 +1,15 @@
 
-/*-------------------------------------------------------------------------
- Verilog "wrapper" for the automatically-generated FIFO IP core.
- Authors -> Conti - Ragusa 
-       _______    ______      _____
-      |sensor |->| FIFO | -> | DAQ |
-      |_______|  |______|    |_____|
----------------------------------------------------------------------------*/
+//
+//Verilog "wrapper" for the automatically-generated FIFO IP core.
+//Authors -> Conti - Ragusa 
+//       _______    ______      _____
+//      |sensor |->| FIFO | -> | DAQ |
+//      |_______|  |______|    |_____|
+//
 
-  /*---------------------------------
-  /     FIFO_WIDTH10_DEPTH32        /
-  --------------------------------*/
+  ////////////////////////////////////
+  //     FIFO_WIDTH10_DEPTH16      //
+  //////////////////////////////////
 
 `timescale 1ns / 100ps
 
@@ -38,9 +38,9 @@ module FIFO #(parameter integer WIDTH=10 )(
    
    
 
-   /*-------------------------------
-   /    FIFO IP (FIFO Generator)   /
-    -----------------------------*/
+   //////////////////////////////////
+   //   FIFO IP (FIFO Generator)  //
+   ////////////////////////////////
 
    // **NOTE: the actual FIFO implementation is placed in ../cores/FIFO_WIDTH8_DEPTH32/FIFO_WIDTH8_DEPTH32_sim_netlist.v
 

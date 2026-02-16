@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
 ------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2022.2 (win64) Build 3671981 Fri Oct 14 05:00:03 MDT 2022
-| Date         : Thu Feb 12 12:07:26 2026
+| Date         : Mon Feb 16 11:15:28 2026
 | Host         : LAPTOP-O7E912V4 running 64-bit major release  (build 9200)
 | Command      : report_timing -file work/build/reports/post_syn_timing.rpt
 | Design       : MAIN
@@ -11,7 +11,7 @@ Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
 
 Timing Report
 
-Slack (MET) :             1.249ns  (required time - arrival time)
+Slack (MET) :             1.349ns  (required time - arrival time)
   Source:                 rst
                             (input port clocked by clk100  {rise@0.000ns fall@5.000ns period=10.000ns})
   Destination:            FIFO_inst/FIFO_WIDTH10_DEPTH16_inst/U0/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.rd/grss.rsts/ram_empty_fb_i_reg/S
@@ -26,11 +26,10 @@ Slack (MET) :             1.249ns  (required time - arrival time)
     Destination Clock Delay (DCD):    -2.746ns = ( 7.254 - 10.000 ) 
     Source Clock Delay      (SCD):    0.000ns
     Clock Pessimism Removal (CPR):    0.000ns
-  Clock Uncertainty:      0.237ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE + UU
+  Clock Uncertainty:      0.137ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
     Total System Jitter     (TSJ):    0.071ns
     Discrete Jitter          (DJ):    0.096ns
     Phase Error              (PE):    0.077ns
-    User Uncertainty         (UU):    0.100ns
   Clock Domain Crossing:  Inter clock paths are considered valid unless explicitly excluded by timing constraints such as set_clock_groups or set_false_path.
 
     Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
@@ -40,9 +39,9 @@ Slack (MET) :             1.249ns  (required time - arrival time)
     A8                                                0.000     2.000 r  rst (IN)
                          net (fo=0)                   0.000     2.000    rst
     A8                   IBUF (Prop_ibuf_I_O)         1.541     3.541 r  rst_IBUF_inst/O
-                         net (fo=5, unplaced)         0.800     4.341    rst_IBUF
+                         net (fo=6, unplaced)         0.800     4.341    rst_IBUF
                          LUT2 (Prop_lut2_I0_O)        0.124     4.465 r  FIFO_WIDTH10_DEPTH16_inst_i_1/O
-                         net (fo=83, unplaced)        0.871     5.336    FIFO_inst/FIFO_WIDTH10_DEPTH16_inst/U0/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.rd/grss.rsts/srst
+                         net (fo=82, unplaced)        0.871     5.336    FIFO_inst/FIFO_WIDTH10_DEPTH16_inst/U0/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.rd/grss.rsts/srst
                          FDSE                                         r  FIFO_inst/FIFO_WIDTH10_DEPTH16_inst/U0/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.rd/grss.rsts/ram_empty_fb_i_reg/S
   -------------------------------------------------------------------    -------------------
 
@@ -56,16 +55,16 @@ Slack (MET) :             1.249ns  (required time - arrival time)
                                                      -5.893     5.965 r  PLL_inst/inst/plle2_adv_inst/CLKOUT0
                          net (fo=1, unplaced)         0.760     6.724    PLL_inst/inst/CLK_OUT_100_PLL
                          BUFG (Prop_bufg_I_O)         0.091     6.815 r  PLL_inst/inst/clkout1_buf/O
-                         net (fo=144, unplaced)       0.439     7.254    FIFO_inst/FIFO_WIDTH10_DEPTH16_inst/U0/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.rd/grss.rsts/clk
+                         net (fo=145, unplaced)       0.439     7.254    FIFO_inst/FIFO_WIDTH10_DEPTH16_inst/U0/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.rd/grss.rsts/clk
                          FDSE                                         r  FIFO_inst/FIFO_WIDTH10_DEPTH16_inst/U0/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.rd/grss.rsts/ram_empty_fb_i_reg/C
                          clock pessimism              0.000     7.254    
-                         clock uncertainty           -0.237     7.018    
-                         FDSE (Setup_fdse_C_S)       -0.433     6.585    FIFO_inst/FIFO_WIDTH10_DEPTH16_inst/U0/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.rd/grss.rsts/ram_empty_fb_i_reg
+                         clock uncertainty           -0.137     7.118    
+                         FDSE (Setup_fdse_C_S)       -0.433     6.685    FIFO_inst/FIFO_WIDTH10_DEPTH16_inst/U0/inst_fifo_gen/gconvfifo.rf/grf.rf/gntv_or_sync_fifo.gl0.rd/grss.rsts/ram_empty_fb_i_reg
   -------------------------------------------------------------------
-                         required time                          6.585    
+                         required time                          6.685    
                          arrival time                          -5.336    
   -------------------------------------------------------------------
-                         slack                                  1.249    
+                         slack                                  1.349    
 
 
 

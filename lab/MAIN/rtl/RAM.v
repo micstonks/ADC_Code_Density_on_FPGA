@@ -1,4 +1,10 @@
-//Dual port RAM implementation
+//
+//
+//
+// Dual port RAM implementation
+// Authors -> Conti-Ragusa
+//
+//
 
 `timescale 1ns / 100ps
 
@@ -35,7 +41,7 @@ module RAM #(parameter integer WIDTH = 16, parameter integer DEPTH = 1024) (
 	     
 		 ram[addr_a] <= din_a;
 		 
-      end   //if wen
+      end              //if wen
 	  
       //two read operations	  
 	  addr_a_reg <= addr_a;

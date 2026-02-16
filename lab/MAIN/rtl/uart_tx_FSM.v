@@ -1,14 +1,14 @@
-/*------------------------------------------------------------------------------------------------------------
- Implementation of UART transmission unit using a Finite Circulate State Machine (FSM).
- Authors -> Conti-Ragusa
-
-
-     __________________       _____ _____ _____ _____ _____ _____ _____ _____ ______ __________
-                       \_____/_____X_____X_____X_____X_____X_____X_____X_____X_____X      :
- 
-           IDLE        START  BIT0  BIT1  BIT2  BIT3  BIT4  BIT5  BIT6  BIT7   PARITY STOP  IDLE
-
-------------------------------------------------------------------------------------------------------------*/
+//
+// Implementation of UART transmission unit using a Finite Circulate State Machine (FSM).
+// Authors -> Conti-Ragusa
+//
+//
+//     __________________       _____ _____ _____ _____ _____ _____ _____ _____ ______ __________
+//                       \_____/_____X_____X_____X_____X_____X_____X_____X_____X_____X      :
+// 
+//           IDLE        START  BIT0  BIT1  BIT2  BIT3  BIT4  BIT5  BIT6  BIT7   PARITY STOP  IDLE
+//
+//
 
 
 `timescale 1ns / 100ps
@@ -37,7 +37,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
     if (rst) 
         addr <= {LENGTH_ADDR{1'b0}};
      else if (tx_en && byte_index == 2'd3 && STATE == STOP)      // last byte send
-        addr <= addr + 1'b1;                    // move to the next cell
+        addr <= addr + 1'b1;                                     // move to the next cell
      end
   
 
@@ -50,7 +50,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    wire [7:0] addr_lo =  addr [7:0];                          //BYTE1
        
    wire [7:0] tx_data_hi = tx_data[WIDTH_DATA-1:8];           //BYTE2
-   wire [7:0] tx_data_lo = tx_data[7:0];                     //BYTE3 UART works at 8bit,for the data using 2-byte
+   wire [7:0] tx_data_lo = tx_data[7:0];                      //BYTE3 UART works at 8bit,for the data using 2-byte
    
    reg tx_busy;
    
@@ -68,12 +68,10 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    
    always @(posedge clk) begin
    
-      if (rst | STATE == IDLE)
-	     
+      if (rst | STATE == IDLE) 
 		 bit_cnt <= 3'd0;
       
 	  else if (STATE == SEND_BYTE && tx_en) begin
-	     
 		 bit_cnt <= bit_cnt + 1'b1;
 		 
 	  end // if
@@ -89,7 +87,6 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    always @(posedge clk) begin
       
 	  if (rst) begin
-	  
          byte_index <= 2'd0;
       
 	  end   //if
@@ -97,7 +94,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 	  else if (STATE == STOP && tx_en) begin
 	  
          if (byte_index == 2'd3)
-	  
+	 
             byte_index <= 2'd0;
 		 
          else
@@ -140,17 +137,17 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
   /////////////////////
    
    
-   reg [7:0] tx_data_buf ;                      // **WARN: in hardware this becomes a bank of LATCHES !
+   reg [7:0] tx_data_buf ;                        // **WARN: in hardware this becomes a bank of LATCHES !
 
    reg [2:0] STATE, STATE_NEXT ;
-   reg  par;                              // parity output
+   reg  par;                                      // parity output
 
 
-    /*--------------------------------------------
-   /   next-state logic (pure sequential part)   /
-   --------------------------------------------*/
+    ///////////////////////////////////////////////
+   //   next-state logic (pure sequential part) //
+  ///////////////////////////////////////////////
 
-   always @(posedge clk) begin               // infer a bank of FlipFlops
+   always @(posedge clk) begin                     // infer a bank of FlipFlops
 
       if(rst) begin
 	  
@@ -241,7 +238,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    
          PARITY : begin
              par = ^tx_data_buf;
-             TxD = par ;            // assert STOP bit to '1' as requested by RS-232 protocol
+             TxD = par ;                  
 
             if (tx_en)
                STATE_NEXT = STOP ;
