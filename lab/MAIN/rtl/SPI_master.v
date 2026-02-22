@@ -1,6 +1,11 @@
+
 //
-// Implementation of SPI receiving unit 
 //
+//    Implementation of SPI receiving unit 
+//    Authors->Conti-Ragusa
+//
+//
+
 
 
 `timescale 1ns / 100ps
@@ -14,8 +19,8 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    input    wire   stop,
    
    output   wire   CONVST,
-   output   reg   D_en,                     // Data Valid pulse (1 clock cycle)
-   output   reg   [WIDTH - 1:0] pdo,   // Byte received on MISO
+   output   reg    D_en,                     // Data Valid pulse (1 clock cycle)
+   output   reg    [WIDTH - 1:0] pdo,        // Byte received on MISO
    output   wire   sclk
    
    
@@ -64,7 +69,7 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    assign w_CPHA  = (SPI_MODE == 1) | (SPI_MODE == 3);
    
    
-   reg   busy;                     // Transaction in progress
+   reg   busy;                            // Transaction in progress
    reg   r_sclk;
    
    assign sclk = (adc_ready) ? r_sclk : 1'b0;
@@ -75,28 +80,21 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    wire next_sclk = ~r_sclk;
    wire sclk_rise = (spi_tick && ~r_sclk && next_sclk);
    wire sclk_fall = (spi_tick && r_sclk && ~next_sclk);
-
-   
+   wire sampling_en;
+   wire transfer_done = last_bit_sampled && spi_tick && (r_sclk == w_CPOL);
    reg [$clog2(WIDTH)-1:0] bit_cnt;
    reg [$clog2(WIDTH*2)-1:0] sclk_edge_cnt;
    reg convst_fsm = 1'b0;
-   
-   wire sampling_en;
-   assign sampling_en = (w_CPHA) ? (~r_sclk) : (r_sclk);
-   
    reg last_bit_sampled;
-
-   
-   wire transfer_done = last_bit_sampled && spi_tick && (r_sclk == w_CPOL);
-   
    reg [$clog2(CONV_CYCLES)-1:0] conv_cnt;
-  
    reg [$clog2(POWERUP_CYCLES)-1:0] pwr_cnt;
    reg adc_ready = 1'b0;
    reg convst_pwr = 1'b0;
    
-   
-   
+  
+  
+  
+   assign sampling_en = (w_CPHA) ? (~r_sclk) : (r_sclk);
    assign CONVST = (adc_ready) ? convst_fsm : convst_pwr;
   
    // assign CONVST = (stop)      ?   1'b0     :
@@ -185,7 +183,7 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
 			   STATE_NEXT = START_CONVERSION;
 			   
 		 end //IDLE
-         
+     //_____________________________________________	    
 		 START_CONVERSION: begin
 		 
 		    busy = 1'b1;
@@ -196,7 +194,7 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
 			   STATE_NEXT = ENABLE_SERIAL;
 			
 		 end   //START_CONVERSION
-			
+	//_____________________________________________		
 		 ENABLE_SERIAL: begin
 		 
 		    busy = 1'b1;
@@ -208,7 +206,7 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
 			   
 			   
 		 end  //WAIT_SCLK
-			
+	//_____________________________________________			
 		 SPI_TRANSFER: begin 
          
             busy = 1'b1;
@@ -222,7 +220,7 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
                STATE_NEXT = SPI_TRANSFER;
 		 
 		 end  //spi_transfer
-
+     //_____________________________________________	
          DONE: begin
 
             busy = 1'b0;
@@ -243,19 +241,15 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
    
    always @(posedge clk) begin
    
-      if (rst | STATE != ENABLE_SERIAL) begin
-	     
+      if (rst | STATE != ENABLE_SERIAL) begin   
 		 conv_cnt <= 0;   //TYPE CASTING 
-		 
 	  end   //if 
 	  
 	  else begin
-	  
-	     conv_cnt <= conv_cnt + 1'b1;
-		 
+	     conv_cnt <= conv_cnt + 1'b1; 
 	  end   //else 
    
-   end   //always 
+   end     //always 
    
    
    
@@ -282,9 +276,8 @@ module   SPI_master   #(parameter integer SPI_MODE = 1, parameter integer WIDTH 
             pdo <= {pdo[WIDTH-2:0], MISO};
 			
 			if (bit_cnt == 1)
-			   last_bit_sampled <= 1'b1;
-			   
-            bit_cnt <= bit_cnt - 1'b1;			
+			   last_bit_sampled <= 1'b1; 
+               bit_cnt <= bit_cnt - 1'b1;			
 			
 		 end   //if
          

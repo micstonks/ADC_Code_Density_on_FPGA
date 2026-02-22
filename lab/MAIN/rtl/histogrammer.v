@@ -15,7 +15,7 @@
 
 
 `define WIDTH_FIFO 10
-//`define DEPTH_FIFO 32
+`define DEPTH_FIFO 16
 `define WIDTH_RAM  16
 `define DEPTH_RAM  1024
 
@@ -30,7 +30,7 @@ module Histogrammer (
    input  wire [`WIDTH_FIFO-1:0] rd_data_FIFO,     // rd_data by FIFO
    input  wire [`WIDTH_RAM-1 :0] rd_data_RAM,
    input  wire empty,                              // empty FIFO
-   input  wire full,                              // full FIFO: UNCONNECTED!
+   input  wire full,                               // full FIFO: UNCONNECTED!
    
    
    output reg rd_en_FIFO,                          // Histogrammer check the reading for the FIFO
@@ -49,16 +49,16 @@ module Histogrammer (
    ///////////////////////////
 
    // simply assume a straight-binary states encoding and count from 0 to 12
-   parameter [3:0] IDLE       = 4'h0 ;
-   parameter [3:0] START_FIFO = 4'h1 ;
-   parameter [3:0] LOAD_FIFO = 4'h2 ;
-   parameter [3:0] READ_FIFO  = 4'h3 ;
-   parameter [3:0] LOAD_READING_RAM  = 4'h4 ;
-   parameter [3:0] READ_RAM   = 4'h5 ;
-   parameter [3:0] COUNT      = 4'h6 ;
-   parameter [3:0] LOAD_WRITING_RAM  = 4'h7 ;
-   parameter [3:0] WRITE_RAM  = 4'h8 ;
-   parameter [3:0] PAUSE      = 4'h9 ;    //wait for one clock
+   parameter [3:0] IDLE               = 4'h0 ;
+   parameter [3:0] START_FIFO         = 4'h1 ;
+   parameter [3:0] LOAD_FIFO          = 4'h2 ;
+   parameter [3:0] READ_FIFO          = 4'h3 ;
+   parameter [3:0] LOAD_READING_RAM   = 4'h4 ;
+   parameter [3:0] READ_RAM           = 4'h5 ;
+   parameter [3:0] COUNT              = 4'h6 ;
+   parameter [3:0] LOAD_WRITING_RAM   = 4'h7 ;
+   parameter [3:0] WRITE_RAM          = 4'h8 ;
+   parameter [3:0] PAUSE              = 4'h9 ;    //wait for one clock
   
  
 
@@ -69,7 +69,7 @@ module Histogrammer (
    //   input buffers   //
    ///////////////////////
 
-   reg [`WIDTH_FIFO-1:0] rd_data_FIFO_buf ;               // **WARN: in hardware this becomes a bank of LATCHES !
+   reg [`WIDTH_FIFO-1:0] rd_data_FIFO_buf ;       // **WARN: in hardware this becomes a bank of LATCHES !
    reg [`WIDTH_RAM-1:0] rd_data_RAM_buf ;
 
    
@@ -79,7 +79,7 @@ module Histogrammer (
    //  next-state logic (pure sequential part)  // 
   ///////////////////////////////////////////////
 
-   always @(posedge clk) begin      // infer a bank of FlipFlops
+   always @(posedge clk) begin                    // infer a bank of FlipFlops
 
       if(rst)
          STATE <= IDLE ;
@@ -124,7 +124,6 @@ module Histogrammer (
 		 LOAD_FIFO: begin
     
 	        rd_en_FIFO = 1'b0 ;	
-			
             STATE_NEXT = READ_FIFO ; 
 
          end   // READ_FIFO
@@ -134,7 +133,6 @@ module Histogrammer (
 
 			rd_data_FIFO_buf = rd_data_FIFO;
             addr = rd_data_FIFO_buf  ;
-			
             STATE_NEXT = LOAD_READING_RAM ; 
 
          end   // READ_FIFO
@@ -143,7 +141,6 @@ module Histogrammer (
 		 LOAD_READING_RAM: begin
 		 
 		    //rd_data_RAM = dout_a[addr] changes
-			
             STATE_NEXT = READ_RAM ; 
 
          end   // READ_FIFO
@@ -179,7 +176,6 @@ module Histogrammer (
 		WRITE_RAM : begin
              
 			 wr_en_RAM = 1'b0;
-      
              STATE_NEXT = PAUSE ;
 
          end   // WRITE_RAM
@@ -193,7 +189,7 @@ module Histogrammer (
    //________________________________________
 
 
-         default : STATE_NEXT = IDLE ;   // **IMPORTANT: latches inferred otherwise !
+         default : STATE_NEXT = IDLE ;      // **IMPORTANT: latches inferred otherwise !
 
       endcase
 

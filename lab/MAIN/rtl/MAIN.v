@@ -42,7 +42,7 @@ module MAIN (
    wire pll_rst;                                          //PLL
   
    wire wr_en_FIFO;                                       // enable SPI -> FIFO (D_en/wr_en)
-   wire [`WIDTH_FIFO - 1:0] wr_data_FIFO;                     // data SPI -> FIFO   (ADC_data/wr_data)
+   wire [`WIDTH_FIFO - 1:0] wr_data_FIFO;                 // data SPI -> FIFO   (ADC_data/wr_data)
    wire empty_FIFO, full_FIFO;                            // flag FIFO
    wire rd_en_FIFO;                                       // histogrammer -> FIFO
    wire [`WIDTH_FIFO-1:0] Rd_Data_FIFO;                   // Read data FIFO 
@@ -83,8 +83,8 @@ module MAIN (
 
          // output
          .CONVST(convst),
-         .D_en(wr_en_FIFO),                      // Data Valid pulse (1 clock cycle)
-         .pdo(wr_data_FIFO),                // Byte received on MISO
+         .D_en(wr_en_FIFO),                       // Data Valid pulse (1 clock cycle)
+         .pdo(wr_data_FIFO),                      // Byte received on MISO
          .sclk(sclk)
    
    ) ;
@@ -123,16 +123,16 @@ module MAIN (
 		   //input 
            .clk(pll_clk),                       // assume 100 MHz on-board system clock
            .rst(pll_rst),                       // synchronous reset, active high 
-           .rd_data_FIFO(Rd_Data_FIFO),     // rd_data by FIFO
+           .rd_data_FIFO(Rd_Data_FIFO),         // rd_data by FIFO
            .rd_data_RAM(rd_data_RAM_HISTO),
-           .empty(empty_FIFO),                              // empty FIFO
-           .full(full_FIFO),                              // full FIFO
+           .empty(empty_FIFO),                  // empty FIFO
+           .full(full_FIFO),                    // full FIFO
    
             //output
            .rd_en_FIFO(rd_en_FIFO),             // Histogrammer check the reading for the FIFO
-           .wr_en_RAM(wr_en_RAM),                           // Histogrammer check the writing for the RAM
+           .wr_en_RAM(wr_en_RAM),               // Histogrammer check the writing for the RAM
            .addr(addr_hist),
-           .data_hist(data_hist)           // go to RAM
+           .data_hist(data_hist)                // go to RAM
    ) ;
    
    
@@ -148,7 +148,7 @@ module MAIN (
          .clk(pll_clk),
          .wen(wr_en_RAM),
          .addr_a(addr_hist), 
-         .addr_b(addr_uart),                    // address 0 to DEPTH-1 memory locations (10-bits for 1024 samples)
+         .addr_b(addr_uart),                       // address 0 to DEPTH-1 memory locations (10-bits for 1024 samples)
          .din_a(data_hist),
              
 	    //output
@@ -176,13 +176,13 @@ module MAIN (
 		 //input 
          .clk(pll_clk),                          // assume 100 MHz on-board system clock
          .rst(pll_rst),                          // synchronous reset, active high
-         .stop(stop),                         // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
+         .stop(stop),                            // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
          .tx_en(baud_tick),                      // baud-rate "tick", single clock-pulse asserted once every 1/(9.6 kHz)
          .tx_data(rd_data_RAM_UART),             // 2 byte to be transmitted over the serial lane
          
 		 //output
-         .TxD(serial_output),                     // serial output stream
-         .addr(addr_uart)                         // 10bit for the address            
+         .TxD(serial_output),                    // serial output stream
+         .addr(addr_uart)                        // 10bit for the address            
   
   ) ;
 

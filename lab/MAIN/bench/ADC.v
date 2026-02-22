@@ -1,8 +1,9 @@
 //
-// Module to simulate ADC behaviour
 //
-
-
+//  Module to simulate ADC behaviour
+//  Authors -> Conti-Ragusa 
+//
+//
 
 
 `timescale 1ns / 100ps
@@ -18,21 +19,18 @@ module ADC #(parameter integer WIDTH = 10, parameter real t_power_up = 1500, par
    );
    
    reg powered_up = 1'b0;
-
    reg [WIDTH-1:0] shift_reg ;
-
    reg miso_drv;
    reg [$clog2(WIDTH):0] bit_cnt;
    reg data_ready ;
-
-   assign MISO = data_ready ? miso_drv : 1'bz;
-   
    reg [WIDTH-1:0] conv_counter;
-
    
-   //////////////
+   
+   assign MISO = data_ready ? miso_drv : 1'bz;
+  
+   /////////////////////
    // Power-up logic //
-   //////////////
+   ///////////////////
    
    initial begin
    
@@ -45,9 +43,9 @@ module ADC #(parameter integer WIDTH = 10, parameter real t_power_up = 1500, par
 	  
    end
    
-      //////////////
+   ///////////////////////
    // Conversion logic //
-   //////////////
+   /////////////////////
    
    
    always @(negedge CONVST) begin
@@ -67,8 +65,7 @@ module ADC #(parameter integer WIDTH = 10, parameter real t_power_up = 1500, par
    end
    
    always @(posedge sclk) begin
-   
-	     
+    
          data_ready <=1'b1;
          miso_drv <= shift_reg[WIDTH-1];
          shift_reg <= {shift_reg[WIDTH-2:0], 1'b0};
@@ -79,7 +76,6 @@ module ADC #(parameter integer WIDTH = 10, parameter real t_power_up = 1500, par
    always @(negedge sclk) begin
       
 	  if (bit_cnt == 0)
-	  
 	     data_ready <= 1'b0;
 	  
    end 
