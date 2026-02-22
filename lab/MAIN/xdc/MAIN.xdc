@@ -44,7 +44,7 @@ set_property -dict { PACKAGE_PIN A8   IOSTANDARD LVCMOS33 } [get_ports rst] ;   
 set_property -dict { PACKAGE_PIN C11  IOSTANDARD LVCMOS33 } [get_ports stop] ;   ## SW1
 
 ## hard-wired TxD pin (FPGA pin already connected by Digilent to USB/UART bridge on the board)
-set_property -dict { PACKAGE_PIN D10  IOSTANDARD LVCMOS33 } [get_ports serial_output]
+set_property -dict { PACKAGE_PIN D10  IOSTANDARD LVCMOS33 } [get_ports serial_output]  
 
 ## serial data in from ADC: MISO
 set_property -dict { PACKAGE_PIN G13  IOSTANDARD LVCMOS33 } [get_ports MISO] ;  ## JA1

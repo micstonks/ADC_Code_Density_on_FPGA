@@ -1,0 +1,1 @@
+-relax -mt "2" -L "work" -L "xil_defaultlib" -L "xpm" -L "simprims_ver" -L "unimacro_ver" -L "secureip" -transport_int_delays -pulse_r "0" -pulse_int_r "0" -debug "all" "work.tb_RAM" "work.glbl" -snapshot "tb_RAM" -nolog 

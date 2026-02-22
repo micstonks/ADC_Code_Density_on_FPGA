@@ -39,7 +39,7 @@ module tb_uart_tx_FSM ;
 
    reg rst = 1'b1;
 
-   reg start = 1'b0 ;
+   reg stop = 1'b0 ;
 
    reg [`WIDTH_DATA - 1:0] tx_data ;
 
@@ -51,7 +51,7 @@ module tb_uart_tx_FSM ;
    
       .clk(clk100), 
 	  .rst(rst), 
-	  .start(start), 
+	  .stop(stop), 
 	  .tx_en(baud_tick),
 	  .tx_data(tx_data), 
 	  .TxD(TxD),
@@ -105,13 +105,15 @@ module tb_uart_tx_FSM ;
 
       $display("RAM initialized with incremental values");	
 	  
-	  #521 start = 1'b1;
+	  #521 stop = 1'b1;
 	   
-	  #(1024*4*11*10414*10); 
+	  #(*4*15*10414*10); 
 	  
-	  #500 start = 1'b0;
+	  stop = 1'b0;
 	  
-	  $finish; 
+	  #(20*10414*10) $finish; 
+	  
+	  
 
    end   //initial   	  
 	  

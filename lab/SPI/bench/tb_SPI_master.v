@@ -63,7 +63,7 @@ module tb_SPI_master ;
 	  stop = 1'b0;
       #500 rst = 1'b0;
 
-      repeat (2) begin
+      repeat (1025) begin
 	  
          @(posedge D_en);
          $display("[%0t ns] ADC Data received: %b", $time, pdo);

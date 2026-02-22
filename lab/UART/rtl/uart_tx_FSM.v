@@ -20,7 +20,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 
    input  wire clk,                              // assume 100 MHz on-board system clock
    input  wire rst,                              // synchronous reset, active high
-   input  wire start,                         // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
+   input  wire stop,                             // start of transmission (e.g. a push-button or a single-clock pulse flag, more in general from a FIFO-empty flag)
    input  wire tx_en,                            // baud-rate "tick", single clock-pulse asserted once every 1/(9.6 kHz)
    input  wire [WIDTH_DATA-1:0] tx_data,         // 2 byte to be transmitted over the serial lane
    
@@ -56,7 +56,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    
    wire tx_start;
    
-   assign tx_start = ( start && ~tx_busy) ? 1'b1: 1'b0;
+   assign tx_start = ( stop && ~tx_busy) ? 1'b1: 1'b0;
    
 
 
@@ -128,9 +128,9 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    parameter [2:0] LOAD        = 3'h1 ;
    parameter [2:0] START       = 3'h2 ;
    parameter [2:0] SEND_BYTE   = 3'h3 ;           //SEND BYTE 
-   //parameter [2:0] PARITY      = 3'h4 ;
-   parameter [2:0] STOP        = 3'h4 ;  
-   parameter [2:0] PAUSE       = 3'h5 ;           // optionally wait for another baud period before moving to IDLE
+   parameter [2:0] PARITY      = 3'h4 ;
+   parameter [2:0] STOP        = 3'h5 ;  
+   parameter [2:0] PAUSE       = 3'h6 ;           // optionally wait for another baud period before moving to IDLE
 
  
    
@@ -143,7 +143,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
    reg [7:0] tx_data_buf ;                      // **WARN: in hardware this becomes a bank of LATCHES !
 
    reg [2:0] STATE, STATE_NEXT ;
-   //reg  par;                              // parity output
+   reg  par;                              // parity output
 
 
     /*--------------------------------------------
@@ -155,7 +155,6 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
       if(rst) begin
 	  
          STATE <= IDLE ;
-		 tx_busy <= 1'b0;
 		 
       end
 		 
@@ -229,7 +228,7 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 			
 			if (tx_en && bit_cnt == 3'd7)
 			
-			   STATE_NEXT = STOP ;
+			   STATE_NEXT = PARITY ;
 			
 			else 
 			   
@@ -239,7 +238,18 @@ module uart_tx_FSM #(parameter integer WIDTH_DATA=16, parameter integer LENGTH_A
 		 
 		 
    //_________________________________
-        
+   
+         PARITY : begin
+             par = ^tx_data_buf;
+             TxD = par ;            // assert STOP bit to '1' as requested by RS-232 protocol
+
+            if (tx_en)
+               STATE_NEXT = STOP ;
+            else
+               STATE_NEXT = PARITY ;
+
+         end   // PARITY
+    //_________________________________       
 		STOP : begin
 
             tx_busy = 1'b1;
